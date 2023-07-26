@@ -1,0 +1,24 @@
+<Project StylesheetPath="stylesheet/default_ui_skin.xmms">
+  <Project.ExportOptions />
+  <Window Title="Settings" Left="209" Top="126" MinWidth="500" MinHeight="200">
+    <Grid HorizontalAlignment="Center" VerticalAlignment="Center" >
+      <Grid.ColumnsProportions>
+        <Proportion Type="Part" />
+        <Proportion Type="Part" Value="0.5" />
+        <Proportion Type="Part" Value="1.5" />
+      </Grid.ColumnsProportions>
+      <Grid.RowsProportions>
+        <Proportion Type="Part" />
+        <Proportion Type="Pixels" Value="100" />
+      </Grid.RowsProportions>
+      <Label Text="Scale:" />
+      <SpinButton Maximum="2" Minimum="0.5" HorizontalAlignment="Stretch" Increment="0.5" GridColumn="2" Id="scale" />
+      <Label Text="Resolution:" GridRow="1" ClipToBounds="True" />
+      <ListBox HorizontalAlignment="Stretch" GridColumn="2" GridRow="1" Id="resolutions" />
+      <HorizontalStackPanel Spacing="5" HorizontalAlignment="Right" GridColumn="2" GridRow="2" >
+        <TextButton Text="Apply" BorderThickness="1" Padding="4" Id="apply" />
+        <TextButton Text="Cancel" BorderThickness="1" Padding="4" Id="cancel" />
+      </HorizontalStackPanel>
+    </Grid>
+  </Window>
+</Project>

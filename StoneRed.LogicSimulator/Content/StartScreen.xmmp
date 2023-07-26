@@ -1,0 +1,13 @@
+<Project StylesheetPath="stylesheet/default_ui_skin.xmms">
+  <Project.ExportOptions />
+  <VerticalStackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+    <Label Text="/c[gray]S/cd/c[red]R/cdLS" Font="ManoloMono.ttf:20" TextColor="#FFA500FF" HorizontalAlignment="Center" Scale="2, 2" />
+    <Label Text="/c[gray]Stone/cd_/c[red]Red/cd Logic Simulator" Font="ManoloMono.ttf:20" TextColor="#FFA500FF" Margin="0, 10, 0, 30" HorizontalAlignment="Center" />
+    <VerticalMenu HorizontalAlignment="Center" Padding="5, 10" Id="menu">
+      <MenuItem Text="Create new world" Id="menuStartNew" />
+      <MenuItem Text="Load world" Id="menuLoad" />
+      <MenuItem Text="Settings" Id="menuSettings" />
+      <MenuItem Text="Quit" Id="menuQuit" />
+    </VerticalMenu>
+  </VerticalStackPanel>
+</Project>

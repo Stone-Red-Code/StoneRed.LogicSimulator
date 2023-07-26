@@ -1,0 +1,7 @@
+<Project>
+  <Project.ExportOptions/>
+  <VerticalStackPanel VerticalAlignment="Center" GridColumnSpan="0">
+    <HorizontalProgressBar HorizontalAlignment="Center" Width="500" Id="progressBar" />
+    <Label Text="Loading..." Font="ManoloMono.ttf:20" Margin="0, 10, 0, 0" HorizontalAlignment="Center" Id="label" />
+  </VerticalStackPanel>
+</Project>
