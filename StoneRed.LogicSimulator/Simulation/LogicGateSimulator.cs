@@ -10,8 +10,10 @@ namespace StoneRed.LogicSimulator.Simulation;
 
 internal class LogicGateSimulator
 {
-    private readonly ConcurrentDictionary<int, LogicGate> logicGates = new ConcurrentDictionary<int, LogicGate>();
+    private readonly ConcurrentDictionary<ulong, LogicGate> logicGates = new ConcurrentDictionary<ulong, LogicGate>();
     private DateTime dateTime;
+    private bool logicGatesUpdated = false;
+    private ulong logicGateId = 0;
     public int TargetTicksPerSecond { get; set; } = 100;
 
     public int ActualTicksPerSecond { get; private set; }
@@ -22,7 +24,7 @@ internal class LogicGateSimulator
 
     public bool HighPerformanceClock { get; set; }
 
-    public LogicGateSimulator(List<LogicGate> logicGates)
+    public LogicGateSimulator(IEnumerable<LogicGate> logicGates)
     {
         foreach (LogicGate logicGate in logicGates)
         {
@@ -49,11 +51,11 @@ internal class LogicGateSimulator
 
     public void AddLogicGate(LogicGate gate)
     {
-        gate.Id = logicGates.Count;
-        _ = logicGates.TryAdd(gate.Id, gate);
+        gate.Id = logicGateId++;
+        logicGatesUpdated = logicGates.TryAdd(gate.Id, gate);
     }
 
-    public LogicGate GetLogicGate(int id)
+    public LogicGate GetLogicGate(ulong id)
     {
         return logicGates[id];
     }
@@ -65,7 +67,12 @@ internal class LogicGateSimulator
 
     public void RemoveLogicGate(LogicGate logicGate)
     {
-        _ = logicGates.TryRemove(logicGate.Id, out _);
+        foreach (LogicGate otherLogicGate in logicGates.Values.Where(l => l.IsConnectedTo(logicGate)))
+        {
+            otherLogicGate.Disconnect(logicGate);
+        }
+
+        logicGatesUpdated = logicGates.TryRemove(logicGate.Id, out _);
     }
 
     public void SimulationThread()
@@ -78,6 +85,12 @@ internal class LogicGateSimulator
         while (IsRunning)
         {
             tps++;
+
+            if (logicGatesUpdated)
+            {
+                logicGatesArray = logicGates.Values.ToArray();
+                logicGatesUpdated = false;
+            }
 
             if (DateTime.Now > dateTime.AddSeconds(1))
             {

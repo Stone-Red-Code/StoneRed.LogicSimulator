@@ -58,6 +58,9 @@ internal abstract class SrlsScreen
 
         public event EventHandler<GameScreenWrapperEventArgs>? OnDraw;
 
+        private bool initialized;
+        private bool loadedContent;
+
         public GameScreenWrapper(Game game) : base(game)
         {
         }
@@ -69,12 +72,20 @@ internal abstract class SrlsScreen
 
         public override void Initialize()
         {
-            OnInitialize?.Invoke(this, EventArgs.Empty);
+            if (!initialized)
+            {
+                initialized = true;
+                OnInitialize?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         public override void LoadContent()
         {
-            OnLoadContent?.Invoke(this, EventArgs.Empty);
+            if (!loadedContent)
+            {
+                loadedContent = true;
+                OnLoadContent?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         public override void UnloadContent()

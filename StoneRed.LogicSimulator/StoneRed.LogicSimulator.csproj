@@ -20,6 +20,7 @@
     <EmbeddedResource Include="Icon.bmp" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="FluentResults" Version="3.15.2" />
     <PackageReference Include="MonoGame.Extended" Version="3.8.0" />
     <PackageReference Include="MonoGame.Extended.Entities" Version="3.8.0" />
     <PackageReference Include="MonoGame.Extended.Graphics" Version="3.8.0" />

@@ -11,9 +11,12 @@ using Myra.Graphics2D.UI;
 
 using StoneRed.LogicSimulator.Simulation;
 using StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces;
+using StoneRed.LogicSimulator.UserInterface.Windows;
+using StoneRed.LogicSimulator.Utilities;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using IColorable = StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces.IColorable;
 
@@ -22,26 +25,34 @@ namespace StoneRed.LogicSimulator.UserInterface.Screens;
 internal class WorldScreen : SrlsScreen<Grid>
 {
     private readonly LogicGateSimulator simulator;
+    private readonly Vector2 logicGateSize = new Vector2(100, 100);
     private OrthographicCamera camera = null!;
+    private RichTextLayout richTextLayout = null!;
+
     private Label fpsLabel = null!;
     private Label upsLabel = null!;
+    private Label positionLabel = null!;
     private SpinButton frequency = null!;
     private CheckBox highPerformance = null!;
+    private ListBox nativeComponentsListBox = null!;
     private float fps;
 
     private MouseStateExtended previousMouseState;
-    public override bool ScalingEnabled => false;
 
+    private ConnectionContext? connectionContext = null;
+
+    private LogicGate? selectedLogicGate = null;
+    public override bool ScalingEnabled => false;
     protected override string XmmpPath => "WorldScreen.xmmp";
 
-    public WorldScreen(List<LogicGate> logicGates)
+    public WorldScreen(IEnumerable<LogicGate> logicGates)
     {
         simulator = new LogicGateSimulator(logicGates);
     }
 
     public WorldScreen()
     {
-        simulator = new LogicGateSimulator(new List<LogicGate>());
+        simulator = new LogicGateSimulator(Enumerable.Empty<LogicGate>());
     }
 
     protected override void Initialize()
@@ -49,10 +60,25 @@ internal class WorldScreen : SrlsScreen<Grid>
         VerticalStackPanel infoPanel = Root.FindChildById<VerticalStackPanel>("info");
         fpsLabel = infoPanel.FindChildById<Label>("fps");
         upsLabel = infoPanel.FindChildById<Label>("ups");
+        positionLabel = infoPanel.FindChildById<Label>("position");
 
         VerticalStackPanel settingsPanel = Root.FindChildById<VerticalStackPanel>("settings");
         frequency = settingsPanel.FindChildById<SpinButton>("frequency");
         highPerformance = settingsPanel.FindChildById<CheckBox>("highPerformance");
+
+        nativeComponentsListBox = Root.FindChildById<ListBox>("nativeComponents");
+
+        foreach (LogicGateInfo logicGateInfo in srls.LogicGatesManager.GetNativeLogicGatesInfos())
+        {
+            nativeComponentsListBox.Items.Add(new ListItem(logicGateInfo.TypeName));
+        }
+
+        nativeComponentsListBox.SelectedIndexChanged += NativeComponentsListBox_SelectedIndexChanged;
+
+        richTextLayout = new RichTextLayout
+        {
+            Font = srls.FontSystem.GetFont(15)
+        };
 
         camera = new OrthographicCamera(srls.GraphicsDevice)
         {
@@ -68,11 +94,6 @@ internal class WorldScreen : SrlsScreen<Grid>
     {
         fps = 1f / gameTime.GetElapsedSeconds();
 
-        RichTextLayout richTextLayout = new RichTextLayout
-        {
-            Font = srls.FontSystem.GetFont(15)
-        };
-
         Matrix transformMatrix = camera.GetViewMatrix();
         srls.SpriteBatch.Begin(SpriteSortMode.BackToFront, transformMatrix: transformMatrix);
 
@@ -87,20 +108,35 @@ internal class WorldScreen : SrlsScreen<Grid>
             if (logicGate is IInteractable interactable)
             {
                 richTextLayout.Text = interactable.Info;
-                richTextLayout.Draw(srls.SpriteBatch, (new Vector2(0, 15) * srls.Scale) + (logicGate.Metadata.Position * srls.Scale), Color.Black, new Vector2(srls.Scale, srls.Scale), layerDepth: 0);
+                richTextLayout.Draw(srls.SpriteBatch, (new Vector2(0, 15) * srls.Scale) + (logicGate.WorldData.Position * srls.Scale), Color.Black, new Vector2(srls.Scale, srls.Scale), layerDepth: 0);
             }
 
-            richTextLayout.Text = logicGate.Metadata.Name;
+            // Draw text for components
+            richTextLayout.Text = logicGate.WorldData.Name;
+            richTextLayout.Draw(srls.SpriteBatch, logicGate.WorldData.Position * srls.Scale, Color.Black, new Vector2(srls.Scale, srls.Scale), layerDepth: 0);
 
-            richTextLayout.Draw(srls.SpriteBatch, logicGate.Metadata.Position * srls.Scale, Color.Black, new Vector2(srls.Scale, srls.Scale), layerDepth: 0);
+            // Draw logic gate
+            srls.SpriteBatch.FillRectangle(logicGate.WorldData.Position * srls.Scale, logicGateSize * srls.Scale, color, 0.2f);
 
-            srls.SpriteBatch.FillRectangle(logicGate.Metadata.Position * srls.Scale, logicGate.Metadata.Size * srls.Scale, color, 0.2f);
-
+            // Draw logic gate connections
             foreach (LogicGateConnection connection in logicGate.LogicGateConnections)
             {
                 Color lineColor = logicGate.GetCachedOutputBit(connection.OutputIndex) == 1 ? Color.Red : Color.LightBlue;
-                srls.SpriteBatch.DrawLine((logicGate.Metadata.Position * srls.Scale) + (logicGate.Metadata.Size / 2 * srls.Scale), (connection.LogicGate.Metadata.Position * srls.Scale) + (logicGate.Metadata.Size / 2 * srls.Scale), lineColor, 5 * srls.Scale, 0.1f);
+                srls.SpriteBatch.DrawLine((logicGate.WorldData.Position * srls.Scale) + (logicGateSize / 2 * srls.Scale), (connection.LogicGate.WorldData.Position * srls.Scale) + (logicGateSize / 2 * srls.Scale), lineColor, 5 * srls.Scale, 0.1f);
             }
+        }
+
+        if (connectionContext is not null)
+        {
+            LogicGate logicGate = connectionContext.LogicGate;
+            srls.SpriteBatch.DrawLine((logicGate.WorldData.Position * srls.Scale) + (logicGateSize / 2 * srls.Scale), camera.ScreenToWorld(previousMouseState.Position.ToVector2()), Color.Purple, 5 * srls.Scale, 0.1f);
+        }
+
+        if (selectedLogicGate is not null)
+        {
+            richTextLayout.Text = selectedLogicGate.WorldData.Name;
+            richTextLayout.Draw(srls.SpriteBatch, selectedLogicGate.WorldData.Position, Color.White, new Vector2(srls.Scale, srls.Scale), layerDepth: 0);
+            srls.SpriteBatch.DrawRectangle(selectedLogicGate.WorldData.Position, logicGateSize * srls.Scale, Color.Red, 2 * srls.Scale);
         }
 
         srls.SpriteBatch.End();
@@ -125,12 +161,15 @@ internal class WorldScreen : SrlsScreen<Grid>
         }
 
         fpsLabel.Text = $"FPS: {Math.Round(fps)}";
-        upsLabel.Text = $"FRQ: {CalculateFrequency(simulator.ActualTicksPerSecond)}/{CalculateFrequency(simulator.TargetTicksPerSecond)}{(simulator.HighPerformanceClock ? "*" : string.Empty)} {(simulator.ClockCalibrating ? $"[Calibrating... {calibrationPercentage}%]" : string.Empty)}";
+        upsLabel.Text = $"FRQ: {FrequencyCalculator.CalculateFrequency(simulator.ActualTicksPerSecond)}/{FrequencyCalculator.CalculateFrequency(simulator.TargetTicksPerSecond)}{(simulator.HighPerformanceClock ? "*" : string.Empty)} {(simulator.ClockCalibrating ? $"[Calibrating... {calibrationPercentage}%]" : string.Empty)}";
+        positionLabel.Text = $"X/Y: {(long)Math.Round(camera.Position.X / logicGateSize.X / srls.Scale)}/{(long)Math.Round(camera.Position.Y / logicGateSize.Y / srls.Scale)}";
+
         simulator.TargetTicksPerSecond = (int)frequency.Value.GetValueOrDefault();
         simulator.HighPerformanceClock = highPerformance.IsChecked;
 
         fpsLabel.Font = srls.FontSystem.GetFont(10 * srls.Scale);
         upsLabel.Font = srls.FontSystem.GetFont(10 * srls.Scale);
+        positionLabel.Font = srls.FontSystem.GetFont(10 * srls.Scale);
 
         MouseStateExtended mouseState = MouseExtended.GetState();
         KeyboardStateExtended keyboardState = KeyboardExtended.GetState();
@@ -139,13 +178,17 @@ internal class WorldScreen : SrlsScreen<Grid>
 
         foreach (LogicGate logicGate in simulator.GetLogicGates())
         {
-            Rectangle rectangle = new Rectangle((logicGate.Metadata.Position * srls.Scale).ToPoint(), (logicGate.Metadata.Size * srls.Scale).ToPoint());
+            Rectangle rectangle = new Rectangle((logicGate.WorldData.Position * srls.Scale).ToPoint(), (logicGateSize * srls.Scale).ToPoint());
 
             if (rectangle.Contains(camera.ScreenToWorld(mouseState.Position.ToVector2())))
             {
-                if (mouseState.IsButtonDown(MouseButton.Right))
+                if (mouseState.IsButtonDown(MouseButton.Right) && selectedLogicGate is null)
                 {
                     ShowConnectionContextMenu(logicGate, mouseState.Position, keyboardState.IsShiftDown());
+                }
+                else if (!srls.Desktop.IsMouseOverGUI && keyboardState.IsKeyDown(Keys.X) && connectionContext is null)
+                {
+                    simulator.RemoveLogicGate(logicGate);
                 }
                 else if (!srls.Desktop.IsMouseOverGUI && logicGate is IInteractable interactable)
                 {
@@ -161,13 +204,42 @@ internal class WorldScreen : SrlsScreen<Grid>
             srls.Desktop.HideContextMenu();
         }
 
+        if (selectedLogicGate is not null)
+        {
+            if (mouseState.IsButtonDown(MouseButton.Left) && !mouseOverGate && !srls.Desktop.IsMouseOverGUI)
+            {
+                selectedLogicGate.WorldData.Position /= srls.Scale;
+                simulator.AddLogicGate(selectedLogicGate);
+                selectedLogicGate = null;
+                nativeComponentsListBox.SelectedIndex = -1;
+            }
+            else
+            {
+                Vector2 position = camera.ScreenToWorld(mouseState.Position.ToVector2());
+                position = new Vector2(position.X - RealMod(position.X, 100 * srls.Scale), position.Y - RealMod(position.Y, 100 * srls.Scale));
+
+                selectedLogicGate.WorldData.Position = position;
+            }
+        }
+
+        if (keyboardState.IsKeyDown(Keys.C))
+        {
+            connectionContext = null;
+            selectedLogicGate = null;
+        }
+
+        if (keyboardState.IsKeyDown(Keys.Q))
+        {
+            srls.ShowWindow<QuickMenu>();
+        }
+
         previousMouseState = mouseState;
 
         float movementSpeed = (float)Math.Pow(200, 2 - camera.Zoom);
 
         movementSpeed = Math.Clamp(movementSpeed, 1000, 20000);
 
-        camera.Move(GetMovementDirection(keyboardState) * movementSpeed * gameTime.GetElapsedSeconds());
+        camera.Move(keyboardState.GetMovementDirection() * movementSpeed * gameTime.GetElapsedSeconds());
 
         if (!keyboardState.IsShiftDown())
         {
@@ -187,64 +259,131 @@ internal class WorldScreen : SrlsScreen<Grid>
         simulator.Stop();
     }
 
-    private static Vector2 GetMovementDirection(KeyboardStateExtended keyboardState)
+    private static float RealMod(float x, float m)
     {
-        Vector2 movementDirection = Vector2.Zero;
-        if (keyboardState.IsKeyDown(Keys.S))
-        {
-            movementDirection += Vector2.UnitY;
-        }
-        if (keyboardState.IsKeyDown(Keys.W))
-        {
-            movementDirection -= Vector2.UnitY;
-        }
-        if (keyboardState.IsKeyDown(Keys.A))
-        {
-            movementDirection -= Vector2.UnitX;
-        }
-        if (keyboardState.IsKeyDown(Keys.D))
-        {
-            movementDirection += Vector2.UnitX;
-        }
-        return movementDirection;
+        float r = x % m;
+        return r < 0 ? r + m : r;
     }
 
-    private static string CalculateFrequency(double hz)
+    private void NativeComponentsListBox_SelectedIndexChanged(object? sender, EventArgs e)
     {
-        double khz = hz / 1000d;
-        double mhz = khz / 1000d;
-        double ghz = mhz / 1000d;
-
-        if (ghz >= 1)
+        if (nativeComponentsListBox.SelectedItem is not null)
         {
-            return $"{Math.Round(ghz)}GHz";
-        }
-        else if (mhz >= 1)
-        {
-            return $"{Math.Round(mhz)}MHz";
-        }
-        else if (khz >= 1)
-        {
-            return $"{Math.Round(khz)}kHz";
-        }
-        else
-        {
-            return $"{Math.Round(hz)}Hz";
+            connectionContext = null;
+            selectedLogicGate = srls.LogicGatesManager.CreateLogicGate(nativeComponentsListBox.SelectedItem.Text);
+            selectedLogicGate.WorldData.Name = nativeComponentsListBox.SelectedItem.Text;
         }
     }
 
     private void ShowConnectionContextMenu(LogicGate logicGate, Point position, bool showInputs)
     {
         showInputs = logicGate.OutputCount <= 0 || (showInputs && logicGate.InputCount > 0);
+
+        string buttonText = "Settings";
+
+        if (connectionContext is not null)
+        {
+            showInputs = !connectionContext.IsInput;
+            buttonText = "Cancel";
+        }
+
         int count = showInputs ? logicGate.InputCount : logicGate.OutputCount;
 
         MenuItem[] menuItems = new MenuItem[count];
 
         for (int i = 0; i < count; i++)
         {
-            menuItems[i] = new MenuItem(i.ToString(), showInputs ? $"Input {i}" : $"Output {i}");
+            int index = i;
+
+            string connectionStatus = string.Empty;
+
+            if (connectionContext is not null)
+            {
+                bool isConnected = false;
+
+                if (connectionContext.IsInput)
+                {
+                    isConnected = logicGate.IsConnectedTo(connectionContext.LogicGate);
+                }
+                else
+                {
+                    isConnected = connectionContext.LogicGate.IsConnectedTo(logicGate);
+                }
+
+                connectionStatus = isConnected ? "[Disconnect]" : "[Connect]";
+            }
+
+            menuItems[i] = new MenuItem(i.ToString(), $"{connectionStatus} " + (showInputs ? $"Input {i}" : $"Output {i}"));
+            menuItems[i].Selected += (_, _) => OnConnectionClicked(logicGate, index, showInputs);
         }
 
-        srls.ShowContextMenu(logicGate.Metadata.Name, position, menuItems);
+        TextButton button = srls.ShowContextMenu(logicGate.WorldData.Name, position, menuItems, true);
+        button.Text = buttonText;
+        button.Click += (_, _) =>
+        {
+            srls.Desktop.HideContextMenu();
+
+            if (connectionContext is not null)
+            {
+                connectionContext = null;
+            }
+            else
+            {
+                // Show settings window
+            }
+        };
+    }
+
+    private void OnConnectionClicked(LogicGate logicGate, int index, bool isInput)
+    {
+        if (connectionContext is null)
+        {
+            connectionContext = new ConnectionContext(logicGate)
+            {
+                Index = index,
+                IsInput = isInput
+            };
+
+            return;
+        }
+
+        if (connectionContext.IsInput)
+        {
+            if (logicGate.IsConnectedTo(connectionContext.LogicGate))
+            {
+                logicGate.Disconnect(connectionContext.LogicGate);
+            }
+            else
+            {
+                logicGate.Connect(connectionContext.LogicGate, connectionContext.Index, index);
+            }
+        }
+        else
+        {
+            if (connectionContext.LogicGate.IsConnectedTo(logicGate))
+            {
+                connectionContext.LogicGate.Disconnect(logicGate);
+            }
+            else
+            {
+                connectionContext.LogicGate.Connect(logicGate, index, connectionContext.Index);
+            }
+        }
+
+        connectionContext = null;
+    }
+
+    private sealed class ConnectionContext
+    {
+        public bool IsInput { get; set; }
+
+        public LogicGate LogicGate { get; set; }
+
+        public int Index { get; set; }
+
+        public ConnectionContext(LogicGate logicGate)
+        {
+            LogicGate = logicGate;
+        }
     }
 }

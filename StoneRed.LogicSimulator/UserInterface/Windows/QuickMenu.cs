@@ -1,4 +1,5 @@
 ﻿using Myra.Graphics2D.UI;
+
 using StoneRed.LogicSimulator.UserInterface.Screens;
 
 namespace StoneRed.LogicSimulator.UserInterface.Windows;
@@ -13,6 +14,8 @@ internal class QuickMenu : SrlsWindow
 
         menu.FindMenuItemById("menuMainMenu").Selected += (s, a) => srls.LoadScreen<StartScreen>();
         menu.FindMenuItemById("menuSettings").Selected += (s, a) => srls.ShowWindow<SettingsWindow>();
+        menu.FindMenuItemById("menuSave").Selected += (s, a) => srls.ShowWindow<SettingsWindow>();
+        menu.FindMenuItemById("menuLoad").Selected += (s, a) => srls.ShowWindow<SettingsWindow>();
         menu.FindMenuItemById("menuQuit").Selected += QuickMenu_Selected;
     }
 

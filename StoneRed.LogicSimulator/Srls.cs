@@ -2,7 +2,6 @@
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 
 using MonoGame.Extended.Screens;
 
@@ -32,6 +31,8 @@ internal class Srls : Game
 
     public FontSystem FontSystem { get; private set; } = null!;
     public AssetManager AssetManager { get; private set; } = null!;
+
+    public LogicGatesManager LogicGatesManager { get; private set; } = null!;
 
     public Settings Settings { get; set; }
 
@@ -98,12 +99,16 @@ internal class Srls : Game
         currentSrlsWindow = window;
     }
 
-    public void ShowContextMenu(string title, Point position, params MenuItem[] menuItems)
+    public TextButton ShowContextMenu(string title, Point position, MenuItem[] menuItems, bool showButton = false)
     {
         string data = File.ReadAllText(Path.Combine(ContentPath, "ContextMenu.xmmp"));
         VerticalStackPanel contextMenu = (VerticalStackPanel)Project.LoadFromXml(data, AssetManager).Root;
 
         contextMenu.FindChildById<Label>("title").Text = title;
+
+        TextButton button = contextMenu.FindChildById<TextButton>("button");
+
+        button.Visible = showButton;
 
         VerticalMenu menu = contextMenu.FindChildById<VerticalMenu>("menu");
 
@@ -114,6 +119,8 @@ internal class Srls : Game
 
         Desktop.ShowContextMenu(contextMenu, position);
         Desktop.ContextMenu.Scale = new Vector2(Scale / 3, Scale / 3);
+
+        return button;
     }
 
     protected override void Update(GameTime gameTime)
@@ -129,12 +136,6 @@ internal class Srls : Game
         if (currentSrlsWindow is not null)
         {
             currentSrlsWindow.Scale = currentSrlsWindow.ScalingEnabled ? new Vector2(Scale / 2, Scale / 2) : Vector2.One;
-        }
-
-        KeyboardState keyboardState = Keyboard.GetState();
-        if (keyboardState.IsKeyDown(Keys.Q))
-        {
-            ShowWindow<QuickMenu>();
         }
 
         base.Update(gameTime);
@@ -167,6 +168,9 @@ internal class Srls : Game
 
         FileAssetResolver assetResolver = new FileAssetResolver(ContentPath);
         AssetManager = new AssetManager(assetResolver);
+
+        LogicGatesManager = new LogicGatesManager();
+        LogicGatesManager.LoadLogicGates();
 
         LoadScreen<StartScreen>();
 

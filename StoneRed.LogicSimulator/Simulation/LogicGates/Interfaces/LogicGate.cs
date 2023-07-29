@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces;
 #pragma warning disable S112 // General exceptions should never be thrown
@@ -14,12 +15,12 @@ internal abstract class LogicGate
     private int output;
     private int cachedOutput;
 
-    public LogicGateMetadata Metadata { get; set; } = new LogicGateMetadata();
-    public int Id { get; set; }
+    public LogicGateWorldData WorldData { get; init; } = new LogicGateWorldData();
+    public ulong Id { get; internal set; }
     public IReadOnlyList<LogicGateConnection> LogicGateConnections => logicGateConnections.AsReadOnly();
-    public abstract int OutputCount { get; }
+    public abstract int OutputCount { get; set; }
 
-    public abstract int InputCount { get; }
+    public abstract int InputCount { get; set; }
 
     public void NextTick()
     {
@@ -58,6 +59,13 @@ internal abstract class LogicGate
         logicGateConnections.Add(new LogicGateConnection(logicGate, inputIndex, outputIndex));
     }
 
+    public bool IsConnectedTo(LogicGate logicGate)
+    {
+#pragma warning disable S6605 // Collection-specific "Exists" method should be used instead of the "Any" extension
+        return logicGateConnections.Any(c => c.LogicGate.Id == logicGate.Id);
+#pragma warning restore S6605 // Collection-specific "Exists" method should be used instead of the "Any" extension
+    }
+
     public void Disconnect(LogicGate logicGate)
     {
         int index = logicGateConnections.FindIndex(c => c.LogicGate.Id == logicGate.Id);
@@ -79,6 +87,17 @@ internal abstract class LogicGate
         }
 
         return cachedOutput.GetBit(index);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is LogicGate gate &&
+                Id == gate.Id;
+    }
+
+    public override int GetHashCode()
+    {
+        return Id.GetHashCode();
     }
 
     protected abstract void Execute();

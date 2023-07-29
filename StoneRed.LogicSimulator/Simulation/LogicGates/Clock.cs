@@ -1,18 +1,21 @@
 ﻿using MonoGame.Extended.Input;
 
+using StoneRed.LogicSimulator.Simulation.LogicGates.Attributes;
 using StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces;
 
 using System;
 
 namespace StoneRed.LogicSimulator.Simulation.LogicGates;
 
+[LogicGateName("Clock")]
+[LogicGateDescription("A clock is a circuit that oscillates between a high and a low state.")]
 internal class Clock : LogicGate, IInteractable
 {
     private int count = 0;
     private int tickRate = 0;
-    public override int OutputCount => 1;
+    public override int OutputCount { get; set; } = 1;
 
-    public override int InputCount => 0;
+    public override int InputCount { get; set; } = 0;
 
     public string Info
     {
@@ -25,11 +28,6 @@ internal class Clock : LogicGate, IInteractable
 
             return tickRate + "\n" + ((count > tickRate) ? count - tickRate : count);
         }
-    }
-
-    public Clock()
-    {
-        Metadata.Name = "Clock";
     }
 
     public void OnInteraction(MouseStateExtended mouseState, MouseStateExtended previousMouseState, KeyboardStateExtended keyboardStateExtended)

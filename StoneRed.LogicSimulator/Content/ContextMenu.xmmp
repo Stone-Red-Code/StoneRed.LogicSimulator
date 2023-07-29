@@ -1,8 +1,8 @@
 <Project StylesheetPath="C:\Users\David\My Drive\Programming\StoneRed.LogicSimulator\StoneRed.LogicSimulator\Content\stylesheet\default_ui_skin.xmms">
   <Project.ExportOptions />
   <VerticalStackPanel BorderThickness="1" Padding="0, 10, 0, 5" Background="#333130FF" Border="#1BA1E2FF">
-    <Label Text="rteterert" Margin="10, 0" ClipToBounds="True" Id="title" />    
-<TextButton Text="Settings" Margin="10, 10, 10, 0" BorderThickness="1" Padding="5" HorizontalAlignment="Center" Scale="0.9, 0.9" Border="#5BC6FAFF" />
+    <Label Text="Context Menu" Margin="10, 0" ClipToBounds="True" Id="title" />
+    <TextButton Text="Settings" Margin="10, 10, 10, 0" BorderThickness="1" Padding="5" HorizontalAlignment="Center" Scale="0.9, 0.9" Border="#5BC6FAFF" Id="button" />
     <VerticalMenu HorizontalAlignment="Stretch" Margin="0, 10, 0, 0" BorderThickness="0, 1, 0, 0" Padding="0, 10, 0, 5" Background="#333130FF" Id="menu" />
   </VerticalStackPanel>
 </Project>

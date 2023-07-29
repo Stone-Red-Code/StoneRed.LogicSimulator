@@ -1,9 +1,11 @@
 <Project StylesheetPath="stylesheet/default_ui_skin.xmms">
   <Project.ExportOptions />
-  <Window Title="Quick Menu" Left="394" Top="177">
-    <VerticalMenu HorizontalAlignment="Center" Margin="0, 0, 0, 15" Padding="0, 10" Id="menu" >
+  <Window Title="Quick Menu" Left="376" Top="149">
+    <VerticalMenu HorizontalAlignment="Center" Margin="0, 0, 0, 15" Padding="0, 10" Id="menu">
       <MenuItem Text="Main Menu" Id="menuMainMenu" />
       <MenuItem Text="Settings" Id="menuSettings" />
+      <MenuItem Text="Save" Id="menuSave" />
+      <MenuItem Text="Load" Id="menuLoad" />
       <MenuItem Text="Quit" Id="menuQuit" />
     </VerticalMenu>
   </Window>

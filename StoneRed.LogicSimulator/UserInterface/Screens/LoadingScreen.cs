@@ -1,22 +1,31 @@
-﻿using Microsoft.Xna.Framework;
+﻿using FluentResults;
+
+using Microsoft.Xna.Framework;
 
 using Myra.Graphics2D.UI;
 
 using StoneRed.LogicSimulator.Simulation.LogicGates;
 using StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces;
+using StoneRed.LogicSimulator.WorldSaveSystem;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace StoneRed.LogicSimulator.UserInterface.Screens;
 
 internal class LoadingScreen : SrlsScreen<VerticalStackPanel>
 {
+    private readonly string filePath;
     private Label label = null!;
     private HorizontalProgressBar horizontalProgressBar = null!;
-
     protected override string XmmpPath => "LoadingScreen.xmmp";
+
+    public LoadingScreen(string filePath)
+    {
+        this.filePath = filePath;
+    }
 
     protected override void Initialize()
     {
@@ -27,25 +36,32 @@ internal class LoadingScreen : SrlsScreen<VerticalStackPanel>
 
     protected override void LoadContent()
     {
+        Progress<WorldSaveLoadProgress> progress = new Progress<WorldSaveLoadProgress>();
+        progress.ProgressChanged += Progress_ProgressChanged;
+
+        WorldLoader worldLoader = new WorldLoader(srls);
+
         _ = Task.Run(async () =>
         {
-            for (int i = 0; i < 100; i++)
+            Result<IEnumerable<LogicGate>> result = await worldLoader.LoadWorld(filePath, progress);
+            if (result.IsFailed)
             {
-                horizontalProgressBar.Value++;
-                await Task.Delay(1);
+                Dialog.CreateMessageBox("Error", string.Join(',', result.Errors.Select(e => e.Message))).Show(srls.Desktop);
             }
         });
     }
 
     protected override void Update(GameTime gameTime)
     {
+        return;
+
         label.Text = $"Loading... {Math.Round(100 / horizontalProgressBar.Maximum * horizontalProgressBar.Value, 0)}%";
         if (horizontalProgressBar.Value >= horizontalProgressBar.Maximum)
         {
             Clock button = new Clock()
             {
                 Id = 0,
-                Metadata = new LogicGateMetadata()
+                WorldData = new LogicGateWorldData()
                 {
                     Name = "Clock",
                     Position = new Vector2(0, 0)
@@ -55,50 +71,50 @@ internal class LoadingScreen : SrlsScreen<VerticalStackPanel>
             Switch @switch = new Switch()
             {
                 Id = 1,
-                Metadata = new LogicGateMetadata()
+                WorldData = new LogicGateWorldData()
                 {
                     Name = "Switch",
-                    Position = new Vector2(0, 150)
+                    Position = new Vector2(0, 200)
                 }
             };
 
-            TestLogicGate testLogicGate1 = new TestLogicGate()
+            NotGate testLogicGate1 = new NotGate()
             {
                 Id = 2,
-                Metadata = new LogicGateMetadata()
+                WorldData = new LogicGateWorldData()
                 {
-                    Name = "L1",
-                    Position = new Vector2(150, 150)
+                    Name = "Not Gate",
+                    Position = new Vector2(200, 200)
                 }
             };
 
             Pin testLogicGate2 = new Pin()
             {
                 Id = 3,
-                Metadata = new LogicGateMetadata()
+                WorldData = new LogicGateWorldData()
                 {
                     Name = "Pin",
-                    Position = new Vector2(300, 300)
+                    Position = new Vector2(400, 400)
                 }
             };
 
             Pin testLogicGate3 = new Pin()
             {
                 Id = 4,
-                Metadata = new LogicGateMetadata()
+                WorldData = new LogicGateWorldData()
                 {
                     Name = "Pin",
-                    Position = new Vector2(450, 450)
+                    Position = new Vector2(500, 500)
                 }
             };
 
             Lamp lamp = new Lamp()
             {
                 Id = 5,
-                Metadata = new LogicGateMetadata()
+                WorldData = new LogicGateWorldData()
                 {
                     Name = "Lamp",
-                    Position = new Vector2(600, 450)
+                    Position = new Vector2(600, 600)
                 }
             };
 
@@ -124,5 +140,11 @@ internal class LoadingScreen : SrlsScreen<VerticalStackPanel>
 
     protected override void Draw(GameTime gameTime)
     {
+    }
+
+    private void Progress_ProgressChanged(object? sender, WorldSaveLoadProgress e)
+    {
+        horizontalProgressBar.Value = e.Percentage;
+        label.Text = e.Message;
     }
 }
