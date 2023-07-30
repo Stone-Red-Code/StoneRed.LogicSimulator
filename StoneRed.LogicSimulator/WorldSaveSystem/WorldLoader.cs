@@ -1,10 +1,9 @@
 ﻿using FluentResults;
 
-using StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces;
+using StoneRed.LogicSimulator.Misc;
 using StoneRed.LogicSimulator.WorldSaveSystem.WorldReaders;
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -19,9 +18,9 @@ internal class WorldLoader
         this.srls = srls;
     }
 
-    public Task<Result<IEnumerable<LogicGate>>> LoadWorld(string filePath, IProgress<WorldSaveLoadProgress> progress)
+    public Task<Result<WorldData>> LoadWorld(string saveName, IProgress<WorldSaveLoadProgress> progress)
     {
-        BinaryReader binaryReader = new BinaryReader(File.OpenRead(filePath));
+        BinaryReader binaryReader = new BinaryReader(File.OpenRead(Paths.GetWorldSaveFilePath(saveName)));
         ushort fileVersion = binaryReader.ReadUInt16();
         binaryReader.Close();
 
@@ -33,9 +32,9 @@ internal class WorldLoader
 
         if (worldReader is null)
         {
-            return Task.FromResult(Result.Fail<IEnumerable<LogicGate>>("Invalid file version!"));
+            return Task.FromResult(Result.Fail<WorldData>("Invalid file version!"));
         }
 
-        return worldReader.ReadWorld(filePath, progress);
+        return worldReader.ReadWorld(saveName, progress);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using FluentResults;
 
+using StoneRed.LogicSimulator.Misc;
 using StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces;
 
 using System;
@@ -19,17 +20,17 @@ internal class WorldReaderV1 : IWorldReader
         this.srls = srls;
     }
 
-    public async Task<Result<IEnumerable<LogicGate>>> ReadWorld(string filePath, IProgress<WorldSaveLoadProgress> progress)
+    public async Task<Result<WorldData>> ReadWorld(string saveName, IProgress<WorldSaveLoadProgress> progress)
     {
-        if (!File.Exists(filePath))
+        if (!File.Exists(Paths.GetWorldSaveFilePath(saveName)))
         {
-            return Result.Fail($"File \"{filePath}\" does not exist");
+            return Result.Fail($"Save \"{saveName}\" does not exist");
         }
 
-        return await Task.Run(() => InternalReadWorld(filePath, progress));
+        return await Task.Run(() => InternalReadWorld(saveName, progress));
     }
 
-    public Result<IEnumerable<LogicGate>> InternalReadWorld(string filePath, IProgress<WorldSaveLoadProgress> progress)
+    public Result<WorldData> InternalReadWorld(string saveName, IProgress<WorldSaveLoadProgress> progress)
     {
         BinaryReader? reader = null;
         Dictionary<LogicGate, List<(ulong GateRefId, int inputIndex, int outputIndex)>> connections = new();
@@ -38,19 +39,23 @@ internal class WorldReaderV1 : IWorldReader
         {
             progress.Report(new(0, "Opening file"));
 
-            reader = new BinaryReader(File.OpenRead(filePath));
-            _ = reader.ReadUInt16(); // File version
+            reader = new BinaryReader(File.OpenRead(Paths.GetWorldSaveFilePath(saveName)));
+            int saveVersion = reader.ReadUInt16();
 
             int numberOfLogicGates = reader.ReadInt32();
 
             for (int gateNumber = 0; gateNumber < numberOfLogicGates; gateNumber++)
             {
-                progress.Report(new((int)((double)gateNumber / numberOfLogicGates * 50d), $"Loading logic gates ({gateNumber / numberOfLogicGates})"));
+                progress.Report(new((int)((double)gateNumber / numberOfLogicGates * 50d), $"Loading logic gates ({gateNumber}/{numberOfLogicGates})"));
 
                 ulong id = reader.ReadUInt64();
                 string typeName = reader.ReadString();
                 int inputCount = reader.ReadInt32();
                 int outputCount = reader.ReadInt32();
+                string name = reader.ReadString();
+                string description = reader.ReadString();
+                float positionX = reader.ReadSingle();
+                float positionY = reader.ReadSingle();
                 int numberOfConnections = reader.ReadInt32();
 
                 if (srls.LogicGatesManager.TryCreateLogicGate(typeName, out LogicGate? logicGate))
@@ -58,6 +63,9 @@ internal class WorldReaderV1 : IWorldReader
                     logicGate.Id = id;
                     logicGate.InputCount = inputCount;
                     logicGate.OutputCount = outputCount;
+                    logicGate.WorldData.Name = name;
+                    logicGate.WorldData.Description = description;
+                    logicGate.WorldData.Position = new(positionX, positionY);
                 }
                 else
                 {
@@ -80,7 +88,7 @@ internal class WorldReaderV1 : IWorldReader
 
             foreach (KeyValuePair<LogicGate, List<(ulong gateRefId, int inputIndex, int outputIndex)>> connectionPair in connections)
             {
-                progress.Report(new((int)((double)connections.Count / connectionCount * 50d), $"Connecting logic gates ({connections.Count / connectionCount})"));
+                progress.Report(new((int)((double)connectionCount / connections.Count * 50d), $"Connecting logic gates ({connectionCount}/{connections.Count})"));
 
                 LogicGate logicGate = connectionPair.Key;
 
@@ -98,6 +106,8 @@ internal class WorldReaderV1 : IWorldReader
 
                 connectionCount++;
             }
+
+            return new WorldData(connections.Keys, saveVersion, saveName);
         }
         catch (IOException ex)
         {
@@ -107,7 +117,5 @@ internal class WorldReaderV1 : IWorldReader
         {
             reader?.Dispose();
         }
-
-        return connections.Keys;
     }
 }

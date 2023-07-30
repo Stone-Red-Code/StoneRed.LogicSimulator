@@ -13,9 +13,9 @@ using StoneRed.LogicSimulator.Simulation;
 using StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces;
 using StoneRed.LogicSimulator.UserInterface.Windows;
 using StoneRed.LogicSimulator.Utilities;
+using StoneRed.LogicSimulator.WorldSaveSystem;
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using IColorable = StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces.IColorable;
@@ -26,6 +26,7 @@ internal class WorldScreen : SrlsScreen<Grid>
 {
     private readonly LogicGateSimulator simulator;
     private readonly Vector2 logicGateSize = new Vector2(100, 100);
+    private readonly WorldData worldData;
     private OrthographicCamera camera = null!;
     private RichTextLayout richTextLayout = null!;
 
@@ -45,14 +46,16 @@ internal class WorldScreen : SrlsScreen<Grid>
     public override bool ScalingEnabled => false;
     protected override string XmmpPath => "WorldScreen.xmmp";
 
-    public WorldScreen(IEnumerable<LogicGate> logicGates)
+    public WorldScreen(WorldData worldData)
     {
-        simulator = new LogicGateSimulator(logicGates);
+        simulator = new LogicGateSimulator(worldData.LogicGates);
+        this.worldData = worldData;
     }
 
     public WorldScreen()
     {
         simulator = new LogicGateSimulator(Enumerable.Empty<LogicGate>());
+        worldData = new WorldData(Enumerable.Empty<LogicGate>(), 1, string.Empty);
     }
 
     protected override void Initialize()
@@ -230,7 +233,8 @@ internal class WorldScreen : SrlsScreen<Grid>
 
         if (keyboardState.IsKeyDown(Keys.Q))
         {
-            srls.ShowWindow<QuickMenu>();
+            worldData.LogicGates = simulator.GetLogicGates();
+            srls.ShowWindow(new QuickMenu(worldData));
         }
 
         previousMouseState = mouseState;

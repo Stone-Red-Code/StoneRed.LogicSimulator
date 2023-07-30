@@ -2,6 +2,8 @@
 
 using Myra.Graphics2D.UI;
 
+using StoneRed.LogicSimulator.Misc;
+
 using System;
 using System.IO;
 
@@ -23,7 +25,7 @@ internal abstract class SrlsWindow
     {
         this.srls = srls;
 
-        string data = File.ReadAllText(Path.Combine(srls.ContentPath, XmmpPath));
+        string data = File.ReadAllText(Paths.GetContentPath(XmmpPath));
         window = (Window)Project.LoadFromXml(data, srls.AssetManager).Root;
         window.Closed += (_, _) => Closed?.Invoke(this, EventArgs.Empty);
     }

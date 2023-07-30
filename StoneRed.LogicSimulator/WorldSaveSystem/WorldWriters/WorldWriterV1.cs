@@ -1,10 +1,10 @@
 ﻿using FluentResults;
 
+using StoneRed.LogicSimulator.Misc;
 using StoneRed.LogicSimulator.Simulation.LogicGates.Attributes;
 using StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces;
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,27 +20,29 @@ internal class WorldWriterV1 : IWorldWriter
         this.srls = srls;
     }
 
-    public Task<Result> WriteWorld(string filePath, IEnumerable<LogicGate> logicGates, IProgress<WorldSaveLoadProgress> progress)
+    public Task<Result> WriteWorld(WorldData worldData, IProgress<WorldSaveLoadProgress> progress)
     {
-        return Task.Run(() => InternalWriteWorld(filePath, logicGates, progress));
+        return Task.Run(() => InternalWriteWorld(worldData, progress));
     }
 
-    private Result InternalWriteWorld(string filePath, IEnumerable<LogicGate> logicGates, IProgress<WorldSaveLoadProgress> progress)
+    private Result InternalWriteWorld(WorldData worldData, IProgress<WorldSaveLoadProgress> progress)
     {
         BinaryWriter? writer = null;
 
         try
         {
-            writer = new BinaryWriter(File.OpenWrite(filePath));
+            string filePath = Paths.GetWorldSaveFilePath(worldData.SaveName);
+
+            writer = new BinaryWriter(File.Open(filePath, FileMode.Create));
 
             progress.Report(new(0, "Counting logic gates"));
 
-            int numberOfLogicGates = logicGates.Count();
+            int numberOfLogicGates = worldData.LogicGates.Count();
 
-            writer.Write(1); // Write file version
+            writer.Write((short)1); // Write file version
             writer.Write(numberOfLogicGates);
 
-            foreach (LogicGate logicGate in logicGates)
+            foreach (LogicGate logicGate in worldData.LogicGates)
             {
                 writer.Write(logicGate.Id);
 
@@ -52,6 +54,10 @@ internal class WorldWriterV1 : IWorldWriter
                 writer.Write(typeName);
                 writer.Write(logicGate.InputCount);
                 writer.Write(logicGate.OutputCount);
+                writer.Write(logicGate.WorldData.Name);
+                writer.Write(logicGate.WorldData.Description);
+                writer.Write(logicGate.WorldData.Position.X);
+                writer.Write(logicGate.WorldData.Position.Y);
                 writer.Write(logicGate.LogicGateConnections.Count);
 
                 foreach (LogicGateConnection connection in logicGate.LogicGateConnections)

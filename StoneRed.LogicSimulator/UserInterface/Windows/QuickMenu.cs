@@ -1,12 +1,20 @@
 ﻿using Myra.Graphics2D.UI;
 
 using StoneRed.LogicSimulator.UserInterface.Screens;
+using StoneRed.LogicSimulator.WorldSaveSystem;
 
 namespace StoneRed.LogicSimulator.UserInterface.Windows;
 
 internal class QuickMenu : SrlsWindow
 {
+    private readonly WorldData worldData;
+
     protected override string XmmpPath => "QuickMenu.xmmp";
+
+    public QuickMenu(WorldData worldData)
+    {
+        this.worldData = worldData;
+    }
 
     public override void Initialize()
     {
@@ -14,8 +22,8 @@ internal class QuickMenu : SrlsWindow
 
         menu.FindMenuItemById("menuMainMenu").Selected += (s, a) => srls.LoadScreen<StartScreen>();
         menu.FindMenuItemById("menuSettings").Selected += (s, a) => srls.ShowWindow<SettingsWindow>();
-        menu.FindMenuItemById("menuSave").Selected += (s, a) => srls.ShowWindow<SettingsWindow>();
-        menu.FindMenuItemById("menuLoad").Selected += (s, a) => srls.ShowWindow<SettingsWindow>();
+        menu.FindMenuItemById("menuSave").Selected += (s, a) => srls.ShowWindow(new SaveWorldWindow(worldData));
+        menu.FindMenuItemById("menuLoad").Selected += (s, a) => srls.ShowWindow<LoadWorldWindow>();
         menu.FindMenuItemById("menuQuit").Selected += QuickMenu_Selected;
     }
 

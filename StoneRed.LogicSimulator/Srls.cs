@@ -8,8 +8,8 @@ using MonoGame.Extended.Screens;
 using Myra;
 using Myra.Assets;
 using Myra.Graphics2D.UI;
-using Myra.Utility;
 
+using StoneRed.LogicSimulator.Misc;
 using StoneRed.LogicSimulator.UserInterface.Screens;
 using StoneRed.LogicSimulator.UserInterface.Windows;
 using StoneRed.LogicSimulator.Utilities;
@@ -36,18 +36,11 @@ internal class Srls : Game
 
     public Settings Settings { get; set; }
 
-    public string ContentPath { get; }
-
-    public string SettingsPath { get; }
-
     public Srls()
     {
         Content.RootDirectory = "Content";
 
-        ContentPath = Path.Combine(PathUtils.ExecutingAssemblyDirectory, "Content");
-        SettingsPath = Path.Combine(PathUtils.ExecutingAssemblyDirectory, "settings.json");
-
-        Settings = Settings.Load(SettingsPath) ?? new Settings()
+        Settings = Settings.Load(Paths.GetSettingsPath()) ?? new Settings()
         {
             Resolution = new Resolution(GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width, GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height),
             Scale = 1
@@ -101,7 +94,7 @@ internal class Srls : Game
 
     public TextButton ShowContextMenu(string title, Point position, MenuItem[] menuItems, bool showButton = false)
     {
-        string data = File.ReadAllText(Path.Combine(ContentPath, "ContextMenu.xmmp"));
+        string data = File.ReadAllText(Paths.GetContentPath("ContextMenu.xmmp"));
         VerticalStackPanel contextMenu = (VerticalStackPanel)Project.LoadFromXml(data, AssetManager).Root;
 
         contextMenu.FindChildById<Label>("title").Text = title;
@@ -164,9 +157,9 @@ internal class Srls : Game
         Desktop = new Desktop();
 
         FontSystem = new FontSystem();
-        FontSystem.AddFont(File.ReadAllBytes(Path.Combine(ContentPath, "ManoloMono.ttf")));
+        FontSystem.AddFont(File.ReadAllBytes(Paths.GetContentPath("ManoloMono.ttf")));
 
-        FileAssetResolver assetResolver = new FileAssetResolver(ContentPath);
+        FileAssetResolver assetResolver = new FileAssetResolver(Paths.GetContentPath());
         AssetManager = new AssetManager(assetResolver);
 
         LogicGatesManager = new LogicGatesManager();

@@ -2,6 +2,7 @@
 
 using Myra.Graphics2D.UI;
 
+using StoneRed.LogicSimulator.Misc;
 using StoneRed.LogicSimulator.Utilities;
 
 using System.Collections.Generic;
@@ -53,7 +54,7 @@ internal class SettingsWindow : SrlsWindow
 
         srls.Settings.Resolution = newResolution;
         srls.Settings.Scale = scaleSpinButton.Value.GetValueOrDefault(1);
-        srls.Settings.Save(srls.SettingsPath);
+        srls.Settings.Save(Paths.GetSettingsPath());
 
         window.Close();
 

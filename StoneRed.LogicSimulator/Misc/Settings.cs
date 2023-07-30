@@ -1,7 +1,8 @@
 ﻿using System.IO;
 using System.Text.Json;
+using StoneRed.LogicSimulator.Utilities;
 
-namespace StoneRed.LogicSimulator.Utilities;
+namespace StoneRed.LogicSimulator.Misc;
 
 internal class Settings
 {
