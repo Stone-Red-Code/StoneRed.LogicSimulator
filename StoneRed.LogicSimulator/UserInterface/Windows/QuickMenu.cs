@@ -20,27 +20,28 @@ internal class QuickMenu : SrlsWindow
     {
         VerticalMenu menu = window.FindChildById<VerticalMenu>("menu");
 
-        menu.FindMenuItemById("menuMainMenu").Selected += (s, a) => srls.LoadScreen<StartScreen>();
+        menu.FindMenuItemById("menuMainMenu").Selected += MenuMainMenu_Selected;
         menu.FindMenuItemById("menuSettings").Selected += (s, a) => srls.ShowWindow<SettingsWindow>();
         menu.FindMenuItemById("menuSave").Selected += (s, a) => srls.ShowWindow(new SaveWorldWindow(worldData));
         menu.FindMenuItemById("menuLoad").Selected += (s, a) => srls.ShowWindow<LoadWorldWindow>();
-        menu.FindMenuItemById("menuQuit").Selected += QuickMenu_Selected;
+        menu.FindMenuItemById("menuQuit").Selected += MenuQuit_Selected;
     }
 
-    private void QuickMenu_Selected(object? sender, System.EventArgs e)
+    private void MenuMainMenu_Selected(object? sender, System.EventArgs e)
     {
-        Dialog dialog = Dialog.CreateMessageBox("Quit?", "Would you like to quit?");
+        OkCancelDialog okCancelDialog = new OkCancelDialog("Do you really want to go to the main menu?", "Yes", "No");
 
-        dialog.Closed += (s, a) =>
-        {
-            if (!dialog.Result)
-            {
-                return;
-            }
+        okCancelDialog.Ok += (s, a) => srls.LoadScreen<StartScreen>();
 
-            srls.Exit();
-        };
+        srls.ShowWindow(okCancelDialog);
+    }
 
-        dialog.ShowModal(srls.Desktop);
+    private void MenuQuit_Selected(object? sender, System.EventArgs e)
+    {
+        OkCancelDialog okCancelDialog = new OkCancelDialog("Do you really want to quit?", "Yes", "No");
+
+        okCancelDialog.Ok += (s, a) => srls.Exit();
+
+        srls.ShowWindow(okCancelDialog);
     }
 }

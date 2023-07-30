@@ -34,10 +34,18 @@ internal class SaveWorldWindow : SrlsWindow
         saveButton.Click += SaveButton_Clicked;
         newSaveButton.Click += NewSaveButton_Click;
 
+        int index = 0;
         foreach (string directories in Directory.GetDirectories(Paths.GetWorldSavesPath()))
         {
             string saveName = Path.GetFileName(directories) ?? string.Empty;
             savesListBox.Items.Add(new(saveName));
+
+            if (saveName == worldData.SaveName)
+            {
+                savesListBox.SelectedIndex = index;
+                saveButton.Enabled = true;
+            }
+            index++;
         }
 
         savesListBox.SelectedIndexChanged += SavesListBox_SelectedIndexChanged;
@@ -48,9 +56,23 @@ internal class SaveWorldWindow : SrlsWindow
         saveButton.Enabled = savesListBox.SelectedItem is not null;
     }
 
-    private async void NewSaveButton_Click(object? sender, EventArgs e)
+    private void NewSaveButton_Click(object? sender, EventArgs e)
     {
-        worldData.SaveName = "New Save";
+        InputDialog inputDialog = new InputDialog("Enter a name for the new save");
+        inputDialog.Ok += NewSaveInputDialog_Ok;
+
+        srls.ShowWindow(inputDialog);
+    }
+
+    private async void NewSaveInputDialog_Ok(object? sender, InputDialogEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(e.Text))
+        {
+            srls.ShowWindow(new InfoDialog("Please enter a valid name"));
+            return;
+        }
+
+        worldData.SaveName = e.Text;
         await Save();
     }
 

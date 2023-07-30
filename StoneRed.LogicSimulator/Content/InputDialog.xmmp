@@ -1,0 +1,13 @@
+<Project StylesheetPath="stylesheet/default_ui_skin.xmms">
+  <Project.ExportOptions />
+  <Window Title="" Left="384" Top="176">
+    <VerticalStackPanel Spacing="5" Margin="10, 0, 10, 10">
+      <Label Text="Enter something:" Id="label" />
+      <TextBox Id="textBox" />
+      <HorizontalStackPanel Spacing="10" HorizontalAlignment="Right" Margin="5, 5, 0, 5">
+        <TextButton Text="Ok" Padding="5, 5, 8, 5" Id="ok" />
+        <TextButton Text="Cancel" Padding="5, 5, 8, 5" Id="cancel" />
+      </HorizontalStackPanel>
+    </VerticalStackPanel>
+  </Window>
+</Project>

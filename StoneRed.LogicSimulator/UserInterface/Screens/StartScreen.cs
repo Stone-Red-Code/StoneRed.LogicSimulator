@@ -13,10 +13,10 @@ internal class StartScreen : SrlsScreen<VerticalStackPanel>
     protected override void Initialize()
     {
         VerticalMenu menu = Root.FindChildById<VerticalMenu>("menu");
-        menu.FindMenuItemById("menuQuit").Selected += (s, a) => srls.Exit();
-        menu.FindMenuItemById("menuSettings").Selected += (s, a) => srls.ShowWindow<SettingsWindow>();
-        menu.FindMenuItemById("menuStartNew").Selected += (s, a) => srls.LoadScreen<WorldScreen>();
-        menu.FindMenuItemById("menuLoad").Selected += MenuLoad_Selected;
+        menu.FindMenuItemById("menuQuit").Selected += (s, e) => srls.Exit();
+        menu.FindMenuItemById("menuSettings").Selected += (s, e) => srls.ShowWindow<SettingsWindow>();
+        menu.FindMenuItemById("menuStartNew").Selected += (s, e) => srls.LoadScreen<WorldScreen>();
+        menu.FindMenuItemById("menuLoad").Selected += (s, e) => srls.ShowWindow<LoadWorldWindow>();
     }
 
     protected override void Draw(GameTime gameTime)
@@ -25,10 +25,5 @@ internal class StartScreen : SrlsScreen<VerticalStackPanel>
 
     protected override void Update(GameTime gameTime)
     {
-    }
-
-    private void MenuLoad_Selected(object? sender, System.EventArgs e)
-    {
-        srls.ShowWindow<LoadWorldWindow>();
     }
 }

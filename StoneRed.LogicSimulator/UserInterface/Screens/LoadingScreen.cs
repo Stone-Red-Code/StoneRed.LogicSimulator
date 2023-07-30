@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 
 using Myra.Graphics2D.UI;
 
+using StoneRed.LogicSimulator.UserInterface.Windows;
 using StoneRed.LogicSimulator.WorldSaveSystem;
 
 using System;
@@ -48,7 +49,8 @@ internal class LoadingScreen : SrlsScreen<VerticalStackPanel>
             }
             else
             {
-                Dialog.CreateMessageBox("Error", string.Join(',', result.Errors.Select(e => e.Message))).Show(srls.Desktop);
+                srls.ShowWindow(new InfoDialog(string.Join(',', result.Errors.Select(e => e.Message))));
+                srls.LoadScreen<StartScreen>();
             }
         });
     }
