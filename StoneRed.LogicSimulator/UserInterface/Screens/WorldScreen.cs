@@ -108,18 +108,27 @@ internal class WorldScreen : SrlsScreen<Grid>
             {
                 color = colorable.Color;
             }
+
             if (logicGate is IInteractable interactable)
             {
                 richTextLayout.Text = interactable.Info;
                 richTextLayout.Draw(srls.SpriteBatch, (new Vector2(0, 15) * srls.Scale) + (logicGate.WorldData.Position * srls.Scale), Color.Black, new Vector2(srls.Scale, srls.Scale), layerDepth: 0);
             }
 
+            // Draw logic gate
+            if (logicGate is Simulation.LogicGates.Interfaces.IDrawable drawable)
+            {
+                Rectangle rectangle = new Rectangle((logicGate.WorldData.Position * srls.Scale).ToPoint(), (logicGateSize * srls.Scale).ToPoint());
+                srls.SpriteBatch.Draw(drawable.Texture, rectangle, null, color, 0, Vector2.Zero, SpriteEffects.None, 0.2f);
+            }
+            else
+            {
+                srls.SpriteBatch.FillRectangle(logicGate.WorldData.Position * srls.Scale, logicGateSize * srls.Scale, color, 0.2f);
+            }
+
             // Draw text for components
             richTextLayout.Text = logicGate.WorldData.Name;
             richTextLayout.Draw(srls.SpriteBatch, logicGate.WorldData.Position * srls.Scale, Color.Black, new Vector2(srls.Scale, srls.Scale), layerDepth: 0);
-
-            // Draw logic gate
-            srls.SpriteBatch.FillRectangle(logicGate.WorldData.Position * srls.Scale, logicGateSize * srls.Scale, color, 0.2f);
 
             // Draw logic gate connections
             foreach (LogicGateConnection connection in logicGate.LogicGateConnections)

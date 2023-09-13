@@ -1,12 +1,12 @@
-<Project StylesheetPath="C:\Users\David\My Drive\Programming\StoneRed.LogicSimulator\StoneRed.LogicSimulator\Content\stylesheet\default_ui_skin.xmms">
-  <Project.ExportOptions />
-  <Window Title="Load world" Left="266" Top="201" MinWidth="400">
-    <VerticalStackPanel>
-      <ListBox HorizontalAlignment="Stretch" Id="saves" />
-      <HorizontalStackPanel Spacing="10">
-        <TextButton Text="Save" Enabled="False" Margin="0, 10, 0, 0" Padding="5, 5, 8, 5" Id="save" />
-        <TextButton Text="New Save" Margin="0, 10, 0, 0" Padding="5, 5, 8, 5" Id="newSave" />
-      </HorizontalStackPanel>
-    </VerticalStackPanel>
-  </Window>
+<Project StylesheetPath="stylesheet/default_ui_skin.xmms">
+    <Project.ExportOptions />
+    <Window Title="Load world" Left="266" Top="201" MinWidth="400">
+        <VerticalStackPanel>
+            <ListBox HorizontalAlignment="Stretch" Id="saves" />
+            <HorizontalStackPanel Spacing="10">
+                <TextButton Text="Save" Enabled="False" Margin="0, 10, 0, 0" Padding="5, 5, 8, 5" Id="save" />
+                <TextButton Text="New Save" Margin="0, 10, 0, 0" Padding="5, 5, 8, 5" Id="newSave" />
+            </HorizontalStackPanel>
+        </VerticalStackPanel>
+    </Window>
 </Project>

@@ -1,9 +1,9 @@
-<Project StylesheetPath="C:\Users\David\My Drive\Programming\StoneRed.LogicSimulator\StoneRed.LogicSimulator\Content\stylesheet\default_ui_skin.xmms">
-  <Project.ExportOptions />
-  <Window Title="Load world" Left="266" Top="198" MinWidth="400">
-    <VerticalStackPanel>
-      <ListBox HorizontalAlignment="Stretch" Id="saves" />
-      <TextButton Text="Load" Enabled="False" Margin="0, 10, 0, 0" Padding="5, 5, 8, 5" Id="load" />
-    </VerticalStackPanel>
-  </Window>
+<Project StylesheetPath="stylesheet/default_ui_skin.xmms">
+    <Project.ExportOptions />
+    <Window Title="Load world" Left="266" Top="198" MinWidth="400">
+        <VerticalStackPanel>
+            <ListBox HorizontalAlignment="Stretch" Id="saves" />
+            <TextButton Text="Load" Enabled="False" Margin="0, 10, 0, 0" Padding="5, 5, 8, 5" Id="load" />
+        </VerticalStackPanel>
+    </Window>
 </Project>

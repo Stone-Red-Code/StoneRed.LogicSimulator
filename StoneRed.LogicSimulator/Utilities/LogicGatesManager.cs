@@ -1,4 +1,6 @@
-﻿using StoneRed.LogicSimulator.Simulation.LogicGates.Attributes;
+﻿using Microsoft.Xna.Framework.Graphics;
+
+using StoneRed.LogicSimulator.Simulation.LogicGates.Attributes;
 using StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces;
 
 using System;
@@ -10,6 +12,13 @@ namespace StoneRed.LogicSimulator.Utilities;
 
 internal class LogicGatesManager
 {
+    private readonly GraphicsDevice graphicsDevice;
+
+    public LogicGatesManager(GraphicsDevice graphicsDevice)
+    {
+        this.graphicsDevice = graphicsDevice;
+    }
+
     private readonly Dictionary<LogicGateInfo, Type> logicGates = new Dictionary<LogicGateInfo, Type>();
 
     public void LoadLogicGates()
@@ -44,7 +53,10 @@ internal class LogicGatesManager
     {
         Type type = logicGates[new LogicGateInfo(typeName, null)];
 
-        return (LogicGate)Activator.CreateInstance(type)!;
+        LogicGate logicGate = (LogicGate)Activator.CreateInstance(type)!;
+        logicGate.GraphicsDevice = graphicsDevice;
+
+        return logicGate;
     }
 
     public string GetTypeName(Type type)
@@ -76,6 +88,8 @@ internal class LogicGatesManager
         Type type = logicGates[new LogicGateInfo(typeName, null)];
 
         logicGate = (LogicGate)Activator.CreateInstance(type)!;
+        logicGate.GraphicsDevice = graphicsDevice;
+
         return true;
     }
 }

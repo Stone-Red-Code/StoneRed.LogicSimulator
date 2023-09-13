@@ -1,4 +1,6 @@
-﻿using StoneRed.LogicSimulator.Utilities;
+﻿using Microsoft.Xna.Framework.Graphics;
+
+using StoneRed.LogicSimulator.Utilities;
 
 using System;
 using System.Collections.Generic;
@@ -14,22 +16,22 @@ internal abstract class LogicGate
     private int newInput;
     private int output;
     private int cachedOutput;
-
-    public LogicGateWorldData WorldData { get; init; } = new LogicGateWorldData();
-    public ulong Id { get; internal set; }
+    internal GraphicsDevice? GraphicsDevice { get; set; }
+    internal LogicGateWorldData WorldData { get; init; } = new LogicGateWorldData();
+    internal ulong Id { get; set; }
     public IReadOnlyList<LogicGateConnection> LogicGateConnections => logicGateConnections.AsReadOnly();
     public abstract int OutputCount { get; set; }
 
     public abstract int InputCount { get; set; }
 
-    public void NextTick()
+    internal void NextTick()
     {
         currentInput = newInput;
         newInput = 0;
         output = 0;
     }
 
-    public void SetInput(int value, int index)
+    internal void SetInput(int value, int index)
     {
         if (index >= InputCount)
         {
@@ -44,7 +46,7 @@ internal abstract class LogicGate
         }
     }
 
-    public void Connect(LogicGate logicGate, int inputIndex, int outputIndex)
+    internal void Connect(LogicGate logicGate, int inputIndex, int outputIndex)
     {
         if (inputIndex >= logicGate.InputCount)
         {
@@ -56,30 +58,37 @@ internal abstract class LogicGate
             throw new IndexOutOfRangeException();
         }
 
-        logicGateConnections.Add(new LogicGateConnection(logicGate, inputIndex, outputIndex));
+        lock (logicGateConnections)
+        {
+            logicGateConnections.Add(new LogicGateConnection(logicGate, inputIndex, outputIndex));
+        }
     }
 
-    public bool IsConnectedTo(LogicGate logicGate)
+    internal bool IsConnectedTo(LogicGate logicGate)
     {
-#pragma warning disable S6605 // Collection-specific "Exists" method should be used instead of the "Any" extension
-        return logicGateConnections.Any(c => c.LogicGate.Id == logicGate.Id);
-#pragma warning restore S6605 // Collection-specific "Exists" method should be used instead of the "Any" extension
+        lock (logicGateConnections)
+        {
+            return logicGateConnections.Any(c => c.LogicGate.Id == logicGate.Id);
+        }
     }
 
-    public void Disconnect(LogicGate logicGate)
+    internal void Disconnect(LogicGate logicGate)
     {
-        int index = logicGateConnections.FindIndex(c => c.LogicGate.Id == logicGate.Id);
-        logicGateConnections.RemoveAt(index);
+        lock (logicGateConnections)
+        {
+            int index = logicGateConnections.FindIndex(c => c.LogicGate.Id == logicGate.Id);
+            logicGateConnections.RemoveAt(index);
+        }
     }
 
-    public void Update()
+    internal void Update()
     {
         Execute();
         cachedOutput = output;
         PublishOutput();
     }
 
-    public int GetCachedOutputBit(int index)
+    internal int GetCachedOutputBit(int index)
     {
         if (index < 0 || index >= OutputCount)
         {
@@ -122,11 +131,19 @@ internal abstract class LogicGate
         output.SetBit(value, index);
     }
 
+    protected Texture2D CreateTexture(int width, int height)
+    {
+        return new Texture2D(GraphicsDevice, width, height);
+    }
+
     private void PublishOutput()
     {
-        foreach (LogicGateConnection connection in logicGateConnections)
+        lock (logicGateConnections)
         {
-            connection.LogicGate.SetInput(output.GetBit(connection.OutputIndex), connection.InputIndex);
+            foreach (LogicGateConnection connection in logicGateConnections)
+            {
+                connection.LogicGate.SetInput(output.GetBit(connection.OutputIndex), connection.InputIndex);
+            }
         }
     }
 }
