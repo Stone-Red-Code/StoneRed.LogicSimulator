@@ -75,7 +75,7 @@ internal class LogicGateSimulator
         logicGatesUpdated = logicGates.TryRemove(logicGate.Id, out _);
     }
 
-    public void SimulationThread()
+    private void SimulationThread()
     {
         int tps = 0;
         float iterations = 10000;
@@ -118,10 +118,12 @@ internal class LogicGateSimulator
                     ClockCalibrating = percentage > 5;
                 }
             }
+
             for (int i = 0; i < logicGatesArray.Length; i++)
             {
                 logicGatesArray[i].NextTick();
             }
+
             for (int i = 0; i < logicGatesArray.Length; i++)
             {
                 logicGatesArray[i].Update();

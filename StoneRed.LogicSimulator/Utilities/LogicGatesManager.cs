@@ -14,12 +14,30 @@ internal class LogicGatesManager
 {
     private readonly GraphicsDevice graphicsDevice;
 
+    private readonly Dictionary<LogicGateInfo, Type> logicGates = new Dictionary<LogicGateInfo, Type>();
+
     public LogicGatesManager(GraphicsDevice graphicsDevice)
     {
         this.graphicsDevice = graphicsDevice;
     }
 
-    private readonly Dictionary<LogicGateInfo, Type> logicGates = new Dictionary<LogicGateInfo, Type>();
+    public static string GetTypeLogicGateName(Type type)
+    {
+        LogicGateNameAttribute nameAttribute = (LogicGateNameAttribute)type.GetCustomAttributes(typeof(LogicGateNameAttribute), false)[0];
+        return nameAttribute.Name;
+    }
+
+    public static bool TryGetTypeLogicGateName(Type type, [NotNullWhen(true)] out string? typeName)
+    {
+        if (type.GetCustomAttributes(typeof(LogicGateNameAttribute), false).FirstOrDefault() is not LogicGateNameAttribute nameAttribute)
+        {
+            typeName = null;
+            return false;
+        }
+
+        typeName = nameAttribute.Name;
+        return true;
+    }
 
     public void LoadLogicGates()
     {
@@ -55,26 +73,8 @@ internal class LogicGatesManager
 
         LogicGate logicGate = (LogicGate)Activator.CreateInstance(type)!;
         logicGate.GraphicsDevice = graphicsDevice;
-
+        logicGate.Initialize();
         return logicGate;
-    }
-
-    public static string GetTypeLogicGateName(Type type)
-    {
-        LogicGateNameAttribute nameAttribute = (LogicGateNameAttribute)type.GetCustomAttributes(typeof(LogicGateNameAttribute), false)[0];
-        return nameAttribute.Name;
-    }
-
-    public static bool TryGetTypeLogicGateName(Type type, [NotNullWhen(true)] out string? typeName)
-    {
-        if (type.GetCustomAttributes(typeof(LogicGateNameAttribute), false).FirstOrDefault() is not LogicGateNameAttribute nameAttribute)
-        {
-            typeName = null;
-            return false;
-        }
-
-        typeName = nameAttribute.Name;
-        return true;
     }
 
     public bool TryCreateLogicGate(string typeName, [NotNullWhen(true)] out LogicGate? logicGate)
@@ -89,7 +89,7 @@ internal class LogicGatesManager
 
         logicGate = (LogicGate)Activator.CreateInstance(type)!;
         logicGate.GraphicsDevice = graphicsDevice;
-
+        logicGate.Initialize();
         return true;
     }
 }

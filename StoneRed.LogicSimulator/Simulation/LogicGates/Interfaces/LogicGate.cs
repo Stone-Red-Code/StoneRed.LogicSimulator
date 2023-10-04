@@ -4,7 +4,6 @@ using StoneRed.LogicSimulator.Utilities;
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces;
 #pragma warning disable S112 // General exceptions should never be thrown
@@ -16,13 +15,23 @@ internal abstract class LogicGate
     private int newInput;
     private int output;
     private int cachedOutput;
+    public IReadOnlyList<LogicGateConnection> LogicGateConnections => logicGateConnections.AsReadOnly();
+    public abstract int OutputCount { get; set; }
+    public abstract int InputCount { get; set; }
     internal GraphicsDevice? GraphicsDevice { get; set; }
     internal LogicGateWorldData WorldData { get; init; } = new LogicGateWorldData();
     internal ulong Id { get; set; }
-    public IReadOnlyList<LogicGateConnection> LogicGateConnections => logicGateConnections.AsReadOnly();
-    public abstract int OutputCount { get; set; }
 
-    public abstract int InputCount { get; set; }
+    public override bool Equals(object? obj)
+    {
+        return obj is LogicGate gate &&
+                Id == gate.Id;
+    }
+
+    public override int GetHashCode()
+    {
+        return Id.GetHashCode();
+    }
 
     internal void NextTick()
     {
@@ -64,19 +73,25 @@ internal abstract class LogicGate
         }
     }
 
-    internal bool IsConnectedTo(LogicGate logicGate)
+    internal bool IsConnectedTo(LogicGate logicGate, int? inputIndex = null, int? outputIndex = null)
     {
         lock (logicGateConnections)
         {
-            return logicGateConnections.Any(c => c.LogicGate.Id == logicGate.Id);
+            return logicGateConnections.Exists(c =>
+            c.LogicGate.Id == logicGate.Id
+            && (!inputIndex.HasValue || c.InputIndex == inputIndex)
+            && (!outputIndex.HasValue || c.OutputIndex == outputIndex));
         }
     }
 
-    internal void Disconnect(LogicGate logicGate)
+    internal void Disconnect(LogicGate logicGate, int? inputIndex = null, int? outputIndex = null)
     {
         lock (logicGateConnections)
         {
-            int index = logicGateConnections.FindIndex(c => c.LogicGate.Id == logicGate.Id);
+            int index = logicGateConnections.FindIndex(c =>
+            c.LogicGate.Id == logicGate.Id &&
+            (!inputIndex.HasValue || c.InputIndex == inputIndex) &&
+            (!outputIndex.HasValue || c.OutputIndex == outputIndex));
             logicGateConnections.RemoveAt(index);
         }
     }
@@ -98,16 +113,8 @@ internal abstract class LogicGate
         return cachedOutput.GetBit(index);
     }
 
-    public override bool Equals(object? obj)
-    {
-        return obj is LogicGate gate &&
-                Id == gate.Id;
-    }
-
-    public override int GetHashCode()
-    {
-        return Id.GetHashCode();
-    }
+    protected internal virtual void Initialize()
+    { }
 
     protected abstract void Execute();
 
