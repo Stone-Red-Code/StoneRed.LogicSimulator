@@ -11,10 +11,12 @@ namespace StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces;
 internal abstract class LogicGate
 {
     private readonly List<LogicGateConnection> logicGateConnections = new();
+    private bool logicGateConnectionsChnaged = false;
     private int currentInput;
     private int newInput;
     private int output;
     private int cachedOutput;
+    private LogicGateConnection[] logicGateConnectionsArray = Array.Empty<LogicGateConnection>();
     public IReadOnlyList<LogicGateConnection> LogicGateConnections => logicGateConnections.AsReadOnly();
     public abstract int OutputCount { get; set; }
     public abstract int InputCount { get; set; }
@@ -70,6 +72,7 @@ internal abstract class LogicGate
         lock (logicGateConnections)
         {
             logicGateConnections.Add(new LogicGateConnection(logicGate, inputIndex, outputIndex));
+            logicGateConnectionsChnaged = true;
         }
     }
 
@@ -93,6 +96,7 @@ internal abstract class LogicGate
             (!inputIndex.HasValue || c.InputIndex == inputIndex) &&
             (!outputIndex.HasValue || c.OutputIndex == outputIndex));
             logicGateConnections.RemoveAt(index);
+            logicGateConnectionsChnaged = true;
         }
     }
 
@@ -145,12 +149,19 @@ internal abstract class LogicGate
 
     private void PublishOutput()
     {
-        lock (logicGateConnections)
+        if (logicGateConnectionsChnaged)
         {
-            foreach (LogicGateConnection connection in logicGateConnections)
+            lock (logicGateConnections)
             {
-                connection.LogicGate.SetInput(output.GetBit(connection.OutputIndex), connection.InputIndex);
+                logicGateConnectionsArray = logicGateConnections.ToArray();
+                logicGateConnectionsChnaged = false;
             }
+        }
+
+        for (int i = 0; i < logicGateConnectionsArray.Length; i++)
+        {
+            LogicGateConnection connection = logicGateConnectionsArray[i];
+            connection.LogicGate.SetInput(output.GetBit(connection.OutputIndex), connection.InputIndex);
         }
     }
 }
