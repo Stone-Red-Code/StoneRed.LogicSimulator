@@ -4,5 +4,5 @@ namespace StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces;
 
 internal interface IColorable
 {
-    public Color Color { get; protected set; }
+    public Color Color { get; }
 }

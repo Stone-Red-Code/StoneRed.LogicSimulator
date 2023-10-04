@@ -11,11 +11,10 @@ namespace StoneRed.LogicSimulator.Simulation.LogicGates;
 [LogicGateDescription("A switch is a toggleable switch that can be turned on and off.")]
 internal class Switch : LogicGate, IInteractable, IColorable
 {
+    private bool isPressed;
     public override int OutputCount { get; set; } = 1;
 
     public override int InputCount { get; set; } = 0;
-
-    public bool IsPressed { get; set; }
     public Color Color { get; set; } = Color.Purple;
     public string Info { get; set; } = "OFF";
 
@@ -23,16 +22,16 @@ internal class Switch : LogicGate, IInteractable, IColorable
     {
         if (mouseState.IsButtonDown(MouseButton.Left) && !previousMouseState.IsButtonDown(MouseButton.Left))
         {
-            IsPressed = !IsPressed;
+            isPressed = !isPressed;
         }
 
-        Color = IsPressed ? Color.Green : Color.Purple;
-        Info = IsPressed ? "ON" : "OFF";
+        Color = isPressed ? Color.Green : Color.Purple;
+        Info = isPressed ? "ON" : "OFF";
     }
 
     protected override void Execute()
     {
-        if (IsPressed)
+        if (isPressed)
         {
             SetOutputBit(1, 0);
         }
