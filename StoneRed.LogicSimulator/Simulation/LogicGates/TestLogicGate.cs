@@ -11,19 +11,43 @@ namespace StoneRed.LogicSimulator.Simulation.LogicGates;
 [LogicGateName("Test")]
 internal class TestLogicGate : LogicGate, Interfaces.IDrawable
 {
-    public override int OutputCount { get; set; } = 1;
-    public override int InputCount { get; set; } = 1;
+    private readonly Color[] colors = new Color[9];
+    private Texture2D texture = null!;
+    public override int OutputCount { get; set; } = 0;
+    public override int InputCount { get; set; } = 9;
 
-    public Texture2D Texture => CreateTexture(1, 1);
+    public Texture2D Texture
+    {
+        get
+        {
+            Draw();
+            return texture;
+        }
+    }
+
+    protected internal override void Initialize()
+    {
+        texture = CreateTexture(3, 3);
+        texture.SetData(new Color[]
+        {
+            Color.Red, Color.Blue, Color.Red,
+            Color.Blue, Color.Red, Color.Blue,
+            Color.Red, Color.Blue, Color.Red
+        });
+    }
 
     protected override void Execute()
     {
-        Texture.SetData(new Color[] { Color.Red });
-
         for (int i = 0; i < InputCount; i++)
         {
-            SetOutputBit(GetInputBit(i), i);
+            colors[i] = GetInputBit(i) == 1 ? Color.Red : Color.Gray;
         }
     }
+
+    private void Draw()
+    {
+        texture.SetData(colors);
+    }
 }
+
 #endif

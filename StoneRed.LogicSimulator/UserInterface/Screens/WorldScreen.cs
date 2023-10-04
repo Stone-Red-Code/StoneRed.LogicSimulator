@@ -98,7 +98,7 @@ internal class WorldScreen : SrlsScreen<Grid>
         fps = 1f / gameTime.GetElapsedSeconds();
 
         Matrix transformMatrix = camera.GetViewMatrix();
-        srls.SpriteBatch.Begin(SpriteSortMode.BackToFront, transformMatrix: transformMatrix);
+        srls.SpriteBatch.Begin(SpriteSortMode.BackToFront, samplerState: SamplerState.PointClamp, transformMatrix: transformMatrix);
 
         foreach (LogicGate logicGate in simulator.GetLogicGates())
         {
@@ -336,11 +336,11 @@ internal class WorldScreen : SrlsScreen<Grid>
 
                 if (connectionContext.IsInput)
                 {
-                    isConnected = logicGate.IsConnectedTo(connectionContext.LogicGate);
+                    isConnected = logicGate.IsConnectedTo(connectionContext.LogicGate, connectionContext.Index, i);
                 }
                 else
                 {
-                    isConnected = connectionContext.LogicGate.IsConnectedTo(logicGate);
+                    isConnected = connectionContext.LogicGate.IsConnectedTo(logicGate, i, connectionContext.Index);
                 }
 
                 connectionStatus = isConnected ? "[Disconnect]" : "[Connect]";
@@ -382,9 +382,9 @@ internal class WorldScreen : SrlsScreen<Grid>
 
         if (connectionContext.IsInput)
         {
-            if (logicGate.IsConnectedTo(connectionContext.LogicGate))
+            if (logicGate.IsConnectedTo(connectionContext.LogicGate, connectionContext.Index, index))
             {
-                logicGate.Disconnect(connectionContext.LogicGate);
+                logicGate.Disconnect(connectionContext.LogicGate, connectionContext.Index, index);
             }
             else
             {
@@ -393,9 +393,9 @@ internal class WorldScreen : SrlsScreen<Grid>
         }
         else
         {
-            if (connectionContext.LogicGate.IsConnectedTo(logicGate))
+            if (connectionContext.LogicGate.IsConnectedTo(logicGate, index, connectionContext.Index))
             {
-                connectionContext.LogicGate.Disconnect(logicGate);
+                connectionContext.LogicGate.Disconnect(logicGate, index, connectionContext.Index);
             }
             else
             {
