@@ -253,6 +253,11 @@ internal class WorldScreen : SrlsScreen<Grid>
             srls.ShowWindow(new QuickMenu(worldData));
         }
 
+        if (keyboardState.IsKeyDown(Keys.Home))
+        {
+            camera.Position = Vector2.Zero;
+        }
+
         previousMouseState = mouseState;
 
         float movementSpeed = (float)Math.Pow(200, 2 - camera.Zoom);
