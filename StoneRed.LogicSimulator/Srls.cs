@@ -36,6 +36,8 @@ internal class Srls : Game
 
     public Settings Settings { get; set; }
 
+    public const ushort CurrentSaveVersion = 1;
+
     public Srls()
     {
         Content.RootDirectory = "Content";
@@ -162,7 +164,7 @@ internal class Srls : Game
         FileAssetResolver assetResolver = new FileAssetResolver(Paths.GetContentPath());
         AssetManager = new AssetManager(assetResolver);
 
-        LogicGatesManager = new LogicGatesManager();
+        LogicGatesManager = new LogicGatesManager(GraphicsDevice);
         LogicGatesManager.LoadLogicGates();
 
         LoadScreen<StartScreen>();

@@ -49,8 +49,8 @@ internal class LoadingScreen : SrlsScreen<VerticalStackPanel>
             }
             else
             {
-                srls.ShowWindow(new InfoDialog(string.Join(',', result.Errors.Select(e => e.Message))));
                 srls.LoadScreen<StartScreen>();
+                srls.ShowWindow(new InfoDialog(string.Join(',', result.Errors.Select(e => e.Message))));
             }
         });
     }

@@ -59,13 +59,13 @@ internal class LogicGatesManager
         return logicGate;
     }
 
-    public string GetTypeName(Type type)
+    public static string GetTypeLogicGateName(Type type)
     {
         LogicGateNameAttribute nameAttribute = (LogicGateNameAttribute)type.GetCustomAttributes(typeof(LogicGateNameAttribute), false)[0];
         return nameAttribute.Name;
     }
 
-    public bool TryGetTypeName(Type type, [NotNullWhen(true)] out string? typeName)
+    public static bool TryGetTypeLogicGateName(Type type, [NotNullWhen(true)] out string? typeName)
     {
         if (type.GetCustomAttributes(typeof(LogicGateNameAttribute), false).FirstOrDefault() is not LogicGateNameAttribute nameAttribute)
         {

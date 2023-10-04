@@ -3,6 +3,7 @@
 using StoneRed.LogicSimulator.Misc;
 using StoneRed.LogicSimulator.Simulation.LogicGates.Attributes;
 using StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces;
+using StoneRed.LogicSimulator.Utilities;
 
 using System;
 using System.IO;
@@ -13,13 +14,6 @@ namespace StoneRed.LogicSimulator.WorldSaveSystem.WorldWriters;
 
 internal class WorldWriterV1 : IWorldWriter
 {
-    private readonly Srls srls;
-
-    public WorldWriterV1(Srls srls)
-    {
-        this.srls = srls;
-    }
-
     public Task<Result> WriteWorld(WorldData worldData, IProgress<WorldSaveLoadProgress> progress)
     {
         return Task.Run(() => InternalWriteWorld(worldData, progress));
@@ -39,14 +33,14 @@ internal class WorldWriterV1 : IWorldWriter
 
             int numberOfLogicGates = worldData.LogicGates.Count();
 
-            writer.Write((short)1); // Write file version
+            writer.Write((ushort)1); // Write file version
             writer.Write(numberOfLogicGates);
 
             foreach (LogicGate logicGate in worldData.LogicGates)
             {
                 writer.Write(logicGate.Id);
 
-                if (!srls.LogicGatesManager.TryGetTypeName(logicGate.GetType(), out string? typeName))
+                if (!LogicGatesManager.TryGetTypeLogicGateName(logicGate.GetType(), out string? typeName))
                 {
                     return Result.Fail($"Logic gate type \"{logicGate.GetType().FullName}\" has no \"{nameof(LogicGateNameAttribute)}\" attribute!");
                 }

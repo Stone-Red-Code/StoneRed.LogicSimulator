@@ -55,7 +55,7 @@ internal class WorldScreen : SrlsScreen<Grid>
     public WorldScreen()
     {
         simulator = new LogicGateSimulator(Enumerable.Empty<LogicGate>());
-        worldData = new WorldData(Enumerable.Empty<LogicGate>(), 1, string.Empty);
+        worldData = new WorldData(Enumerable.Empty<LogicGate>(), Srls.CurrentSaveVersion, string.Empty);
     }
 
     protected override void Initialize()
@@ -173,7 +173,7 @@ internal class WorldScreen : SrlsScreen<Grid>
         }
 
         fpsLabel.Text = $"FPS: {Math.Round(fps)}";
-        upsLabel.Text = $"FRQ: {FrequencyCalculator.CalculateFrequency(simulator.ActualTicksPerSecond)}/{FrequencyCalculator.CalculateFrequency(simulator.TargetTicksPerSecond)}{(simulator.HighPerformanceClock ? "*" : string.Empty)} {(simulator.ClockCalibrating ? $"[Calibrating... {calibrationPercentage}%]" : string.Empty)}";
+        upsLabel.Text = $"FRQ: {FrequencyCalculator.CalculateFrequency(simulator.ActualTicksPerSecond)}/{FrequencyCalculator.CalculateFrequency(simulator.TargetTicksPerSecond)}{(simulator.HighPerformanceClock ? "*" : string.Empty)} {(simulator.ClockCalibrating && simulator.HighPerformanceClock ? $"[Calibrating... {calibrationPercentage}%]" : string.Empty)}";
         positionLabel.Text = $"X/Y: {(long)Math.Round(camera.Position.X / logicGateSize.X / srls.Scale)}/{(long)Math.Round(camera.Position.Y / logicGateSize.Y / srls.Scale)}";
 
         simulator.TargetTicksPerSecond = (int)frequency.Value.GetValueOrDefault();
@@ -222,8 +222,15 @@ internal class WorldScreen : SrlsScreen<Grid>
             {
                 selectedLogicGate.WorldData.Position /= srls.Scale;
                 simulator.AddLogicGate(selectedLogicGate);
-                selectedLogicGate = null;
-                nativeComponentsListBox.SelectedIndex = -1;
+
+                if (keyboardState.IsShiftDown())
+                {
+                    SelectLogicGate();
+                }
+                else
+                {
+                    UnSelectLogicGate();
+                }
             }
             else
             {
@@ -236,12 +243,12 @@ internal class WorldScreen : SrlsScreen<Grid>
 
         if (keyboardState.IsKeyDown(Keys.C))
         {
-            connectionContext = null;
-            selectedLogicGate = null;
+            UnSelectLogicGate();
         }
 
         if (keyboardState.IsKeyDown(Keys.Q))
         {
+            UnSelectLogicGate();
             worldData.LogicGates = simulator.GetLogicGates();
             srls.ShowWindow(new QuickMenu(worldData));
         }
@@ -278,7 +285,7 @@ internal class WorldScreen : SrlsScreen<Grid>
         return r < 0 ? r + m : r;
     }
 
-    private void NativeComponentsListBox_SelectedIndexChanged(object? sender, EventArgs e)
+    private void SelectLogicGate()
     {
         if (nativeComponentsListBox.SelectedItem is not null)
         {
@@ -286,6 +293,19 @@ internal class WorldScreen : SrlsScreen<Grid>
             selectedLogicGate = srls.LogicGatesManager.CreateLogicGate(nativeComponentsListBox.SelectedItem.Text);
             selectedLogicGate.WorldData.Name = nativeComponentsListBox.SelectedItem.Text;
         }
+    }
+
+    private void UnSelectLogicGate()
+    {
+        connectionContext = null;
+        selectedLogicGate = null;
+        nativeComponentsListBox.SelectedIndex = -1;
+        nativeComponentsListBox.SelectedItem = null;
+    }
+
+    private void NativeComponentsListBox_SelectedIndexChanged(object? sender, EventArgs e)
+    {
+        SelectLogicGate();
     }
 
     private void ShowConnectionContextMenu(LogicGate logicGate, Point position, bool showInputs)

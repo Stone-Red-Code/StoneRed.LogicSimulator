@@ -40,7 +40,7 @@ internal class WorldReaderV1 : IWorldReader
             progress.Report(new(0, "Opening file"));
 
             reader = new BinaryReader(File.OpenRead(Paths.GetWorldSaveFilePath(saveName)));
-            int saveVersion = reader.ReadUInt16();
+            ushort saveVersion = reader.ReadUInt16();
 
             int numberOfLogicGates = reader.ReadInt32();
 
