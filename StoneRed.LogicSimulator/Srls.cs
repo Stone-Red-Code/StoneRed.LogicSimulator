@@ -24,6 +24,7 @@ internal class Srls : Game
     private SrlsWindow? currentSrlsWindow = null;
     private SrlsScreen? currentSrlsScreen = null;
     public float Scale { get; private set; }
+    public bool WindowOpen => currentSrlsWindow is not null;
     public GraphicsDeviceManager Graphics { get; }
 
     public Desktop Desktop { get; private set; } = null!;

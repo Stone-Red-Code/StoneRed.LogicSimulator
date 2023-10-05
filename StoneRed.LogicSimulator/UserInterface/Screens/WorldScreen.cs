@@ -36,7 +36,10 @@ internal class WorldScreen : SrlsScreen<Grid>
     private SpinButton frequency = null!;
     private CheckBox highPerformance = null!;
     private ListBox nativeComponentsListBox = null!;
+
     private float fps;
+
+    private bool blockInput;
 
     private MouseStateExtended previousMouseState;
 
@@ -183,6 +186,12 @@ internal class WorldScreen : SrlsScreen<Grid>
         upsLabel.Font = srls.FontSystem.GetFont(10 * srls.Scale);
         positionLabel.Font = srls.FontSystem.GetFont(10 * srls.Scale);
 
+        if (blockInput)
+        {
+            blockInput = srls.WindowOpen;
+            return;
+        }
+
         MouseStateExtended mouseState = MouseExtended.GetState();
         KeyboardStateExtended keyboardState = KeyboardExtended.GetState();
 
@@ -248,8 +257,11 @@ internal class WorldScreen : SrlsScreen<Grid>
 
         if (keyboardState.IsKeyDown(Keys.Q))
         {
+            blockInput = true;
+
             UnSelectLogicGate();
             worldData.LogicGates = simulator.GetLogicGates();
+
             srls.ShowWindow(new QuickMenu(worldData));
         }
 
