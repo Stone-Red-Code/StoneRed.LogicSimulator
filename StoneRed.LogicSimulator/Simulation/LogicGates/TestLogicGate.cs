@@ -20,7 +20,7 @@ internal class TestLogicGate : LogicGate, Interfaces.IDrawable
     {
         get
         {
-            Draw();
+            texture.SetData(colors);
             return texture;
         }
     }
@@ -28,12 +28,6 @@ internal class TestLogicGate : LogicGate, Interfaces.IDrawable
     protected internal override void Initialize()
     {
         texture = CreateTexture(3, 3);
-        texture.SetData(new Color[]
-        {
-            Color.Red, Color.Blue, Color.Red,
-            Color.Blue, Color.Red, Color.Blue,
-            Color.Red, Color.Blue, Color.Red
-        });
     }
 
     protected override void Execute()
@@ -42,11 +36,6 @@ internal class TestLogicGate : LogicGate, Interfaces.IDrawable
         {
             colors[i] = GetInputBit(i) == 1 ? Color.Red : Color.Gray;
         }
-    }
-
-    private void Draw()
-    {
-        texture.SetData(colors);
     }
 }
 
