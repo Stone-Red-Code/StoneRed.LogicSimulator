@@ -1,0 +1,9 @@
+<Project StylesheetPath="stylesheet/default_ui_skin.xmms">
+  <Project.ExportOptions />
+  <Window Title="Saving World" Left="260" Top="215">
+    <VerticalStackPanel VerticalAlignment="Center">
+      <HorizontalProgressBar HorizontalAlignment="Center" Width="500" Id="progressBar" />
+      <Label Text="Saving..." Margin="0, 10, 0, 0" HorizontalAlignment="Center" Id="label" />
+    </VerticalStackPanel>
+  </Window>
+</Project>

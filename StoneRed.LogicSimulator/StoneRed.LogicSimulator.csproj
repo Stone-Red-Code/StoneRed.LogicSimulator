@@ -62,6 +62,9 @@
     <None Update="Content\QuickMenu.xmmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Content\SavingWorldWindow.xmmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Content\SettingsWindow.xmmp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

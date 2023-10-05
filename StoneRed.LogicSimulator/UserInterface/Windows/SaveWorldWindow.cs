@@ -1,14 +1,10 @@
-﻿using FluentResults;
-
-using Myra.Graphics2D.UI;
+﻿using Myra.Graphics2D.UI;
 
 using StoneRed.LogicSimulator.Misc;
 using StoneRed.LogicSimulator.WorldSaveSystem;
 
 using System;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace StoneRed.LogicSimulator.UserInterface.Windows;
 
@@ -64,7 +60,7 @@ internal class SaveWorldWindow : SrlsWindow
         srls.ShowWindow(inputDialog);
     }
 
-    private async void NewSaveInputDialog_Ok(object? sender, InputDialogEventArgs e)
+    private void NewSaveInputDialog_Ok(object? sender, InputDialogEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(e.Text))
         {
@@ -73,28 +69,16 @@ internal class SaveWorldWindow : SrlsWindow
         }
 
         worldData.SaveName = e.Text;
-        await Save();
+        Save();
     }
 
-    private async void SaveButton_Clicked(object? sender, EventArgs e)
+    private void SaveButton_Clicked(object? sender, EventArgs e)
     {
-        await Save();
+        Save();
     }
 
-    private async Task Save()
+    private void Save()
     {
-        WorldSaver worldSaver = new WorldSaver(srls);
-        Result result = await worldSaver.SaveWorld(worldData, new Progress<WorldSaveLoadProgress>());
-
-        if (result.IsSuccess)
-        {
-            _ = Dialog.CreateMessageBox("Success", "Saved world!");
-        }
-        else
-        {
-            _ = Dialog.CreateMessageBox("Error", string.Join(',', result.Errors.Select(e => e.Message)));
-        }
-
-        Close();
+        srls.ShowWindow(new SavingWorldWindow(worldData));
     }
 }

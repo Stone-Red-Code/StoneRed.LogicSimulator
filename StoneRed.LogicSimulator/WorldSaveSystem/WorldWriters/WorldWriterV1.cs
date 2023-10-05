@@ -36,8 +36,13 @@ internal class WorldWriterV1 : IWorldWriter
             writer.Write((ushort)1); // Write file version
             writer.Write(numberOfLogicGates);
 
+            int gateNumber = 0;
+
             foreach (LogicGate logicGate in worldData.LogicGates)
             {
+                gateNumber++;
+                progress.Report(new((int)((double)gateNumber / numberOfLogicGates * 50d), $"Saving logic gates ({gateNumber}/{numberOfLogicGates})"));
+
                 writer.Write(logicGate.Id);
 
                 if (!LogicGatesManager.TryGetTypeLogicGateName(logicGate.GetType(), out string? typeName))
