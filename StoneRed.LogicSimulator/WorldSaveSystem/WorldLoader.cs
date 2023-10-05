@@ -20,9 +20,22 @@ internal class WorldLoader
 
     public Task<Result<WorldData>> LoadWorld(string saveName, IProgress<WorldSaveLoadProgress> progress)
     {
-        BinaryReader binaryReader = new BinaryReader(File.OpenRead(Paths.GetWorldSaveFilePath(saveName)));
-        ushort fileVersion = binaryReader.ReadUInt16();
-        binaryReader.Close();
+        ushort fileVersion;
+        BinaryReader? binaryReader = null;
+
+        try
+        {
+            binaryReader = new BinaryReader(File.OpenRead(Paths.GetWorldSaveFilePath(saveName)));
+            fileVersion = binaryReader.ReadUInt16();
+        }
+        catch (IOException ex)
+        {
+            return Task.FromResult(Result.Fail<WorldData>(ex.Message));
+        }
+        finally
+        {
+            binaryReader?.Close();
+        }
 
         IWorldReader? worldReader = fileVersion switch
         {

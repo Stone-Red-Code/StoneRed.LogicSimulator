@@ -115,7 +115,7 @@ internal class WorldReaderV1 : IWorldReader
         }
         finally
         {
-            reader?.Dispose();
+            reader?.Close();
         }
     }
 }
