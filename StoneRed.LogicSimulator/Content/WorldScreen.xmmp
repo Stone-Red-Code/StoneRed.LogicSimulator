@@ -1,6 +1,6 @@
 <Project StylesheetPath="stylesheet/default_ui_skin.xmms">
   <Project.ExportOptions />
-  <Grid CanSelectNothing="True" >
+  <Grid CanSelectNothing="True">
     <Grid.ColumnsProportions>
       <Proportion Type="Part" />
       <Proportion Type="Part" Value="3" />
@@ -8,10 +8,10 @@
     </Grid.ColumnsProportions>
     <VerticalStackPanel Id="info">
       <Label Text="FPS:" TextColor="#CF56BFFF" Id="fps" />
-      <Label Text="FRQ: " TextColor="#CF56BFFF" Id="ups" />      
+      <Label Text="FRQ: " TextColor="#CF56BFFF" Id="ups" />
       <Label Text="X/Y: " TextColor="#CF56BFFF" Id="position" />
     </VerticalStackPanel>
-    <Panel GridColumn="2" Background="#4BD961FF">
+    <Panel GridColumn="2" TransformOrigin="1, 0" Background="#FFA500FF" Id="sidePanel">
       <VerticalStackPanel Id="settings">
         <Label Text="Frequency:" />
         <SpinButton Maximum="1E+09" Minimum="1" HorizontalAlignment="Stretch" Value="100" Integer="True" Id="frequency" />

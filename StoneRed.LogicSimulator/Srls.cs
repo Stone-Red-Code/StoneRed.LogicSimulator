@@ -20,6 +20,7 @@ namespace StoneRed.LogicSimulator;
 
 internal class Srls : Game
 {
+    public const ushort CurrentSaveVersion = 1;
     private readonly ScreenManager screenManager;
     private SrlsWindow? currentSrlsWindow = null;
     private SrlsScreen? currentSrlsScreen = null;
@@ -36,8 +37,6 @@ internal class Srls : Game
     public LogicGatesManager LogicGatesManager { get; private set; } = null!;
 
     public Settings Settings { get; set; }
-
-    public const ushort CurrentSaveVersion = 1;
 
     public Srls()
     {
@@ -121,7 +120,7 @@ internal class Srls : Game
 
     protected override void Update(GameTime gameTime)
     {
-        Scale = 1f / 800 * Window.ClientBounds.Width * Settings.Scale;
+        Scale = 1f / 800 * Window.ClientBounds.Height * Settings.Scale;
         Desktop.Root.Scale = currentSrlsScreen?.ScalingEnabled == true ? new Vector2(Scale, Scale) : Vector2.One;
 
         if (Desktop.ContextMenu is not null)

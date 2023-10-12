@@ -17,9 +17,9 @@ internal abstract class LogicGate
     private int output;
     private int cachedOutput;
     private LogicGateConnection[] logicGateConnectionsArray = Array.Empty<LogicGateConnection>();
-    public IReadOnlyList<LogicGateConnection> LogicGateConnections => logicGateConnections.AsReadOnly();
     public abstract int OutputCount { get; set; }
     public abstract int InputCount { get; set; }
+    internal IReadOnlyList<LogicGateConnection> LogicGateConnections => logicGateConnections.AsReadOnly();
     internal GraphicsDevice? GraphicsDevice { get; set; }
     internal LogicGateWorldData WorldData { get; init; } = new LogicGateWorldData();
     internal ulong Id { get; set; }
