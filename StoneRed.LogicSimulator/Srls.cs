@@ -20,6 +20,7 @@ namespace StoneRed.LogicSimulator;
 
 internal class Srls : Game
 {
+    public const ushort CurrentSaveVersion = 1;
     private readonly ScreenManager screenManager;
     private SrlsWindow? currentSrlsWindow = null;
     private SrlsScreen? currentSrlsScreen = null;
@@ -36,8 +37,6 @@ internal class Srls : Game
     public LogicGatesManager LogicGatesManager { get; private set; } = null!;
 
     public Settings Settings { get; set; }
-
-    public const ushort CurrentSaveVersion = 1;
 
     public Srls()
     {
@@ -167,6 +166,8 @@ internal class Srls : Game
 
         LogicGatesManager = new LogicGatesManager(GraphicsDevice);
         LogicGatesManager.LoadLogicGates();
+
+        Window.Title = "Stone_Red Logic Simulator";
 
         LoadScreen<StartScreen>();
 
