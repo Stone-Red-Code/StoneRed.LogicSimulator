@@ -1,6 +1,6 @@
 ﻿using MonoGame.Extended.Input;
 
-namespace StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces;
+namespace StoneRed.LogicSimulator.Api.Interfaces;
 
 internal interface IInteractable
 {

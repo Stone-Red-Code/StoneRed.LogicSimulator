@@ -1,11 +1,8 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 
-using StoneRed.LogicSimulator.Utilities;
+using StoneRed.LogicSimulator.Api.Utilities;
 
-using System;
-using System.Collections.Generic;
-
-namespace StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces;
+namespace StoneRed.LogicSimulator.Api.Interfaces;
 #pragma warning disable S112 // General exceptions should never be thrown
 
 internal abstract class LogicGate

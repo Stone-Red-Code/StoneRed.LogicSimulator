@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace StoneRed.LogicSimulator.Simulation.LogicGates;
+namespace StoneRed.LogicSimulator.Api.Utilities;
 
 internal record LogicGateWorldData
 {

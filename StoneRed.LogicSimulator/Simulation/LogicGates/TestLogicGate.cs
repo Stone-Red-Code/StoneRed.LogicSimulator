@@ -1,15 +1,15 @@
-﻿using Microsoft.Xna.Framework;
+﻿#if DEBUG
+
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using StoneRed.LogicSimulator.Simulation.LogicGates.Attributes;
-using StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces;
+using StoneRed.LogicSimulator.Api.Attributes;
+using StoneRed.LogicSimulator.Api.Interfaces;
 
 namespace StoneRed.LogicSimulator.Simulation.LogicGates;
 
-#if DEBUG
-
 [LogicGateName("Test")]
-internal class TestLogicGate : LogicGate, Interfaces.IDrawable
+internal class TestLogicGate : LogicGate, Api.Interfaces.IDrawable
 {
     private readonly Color[] colors = new Color[9];
     private Texture2D texture = null!;

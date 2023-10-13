@@ -1,9 +1,7 @@
-﻿using System;
-
-namespace StoneRed.LogicSimulator.Simulation.LogicGates.Attributes;
+﻿namespace StoneRed.LogicSimulator.Api.Attributes;
 
 [AttributeUsage(AttributeTargets.Class)]
-internal class LogicGateNameAttribute : Attribute
+public class LogicGateNameAttribute : Attribute
 {
     public string Name { get; }
 

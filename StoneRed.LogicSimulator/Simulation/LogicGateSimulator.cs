@@ -1,4 +1,4 @@
-﻿using StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces;
+﻿using StoneRed.LogicSimulator.Api.Interfaces;
 
 using System;
 using System.Collections.Concurrent;

@@ -1,8 +1,8 @@
 ﻿using FluentResults;
 
+using StoneRed.LogicSimulator.Api.Attributes;
+using StoneRed.LogicSimulator.Api.Interfaces;
 using StoneRed.LogicSimulator.Misc;
-using StoneRed.LogicSimulator.Simulation.LogicGates.Attributes;
-using StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces;
 using StoneRed.LogicSimulator.Utilities;
 
 using System;

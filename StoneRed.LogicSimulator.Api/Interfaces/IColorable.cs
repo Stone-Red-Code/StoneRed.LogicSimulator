@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces;
+namespace StoneRed.LogicSimulator.Api.Interfaces;
 
 internal interface IColorable
 {

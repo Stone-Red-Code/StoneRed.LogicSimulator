@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 
-using StoneRed.LogicSimulator.Simulation.LogicGates.Attributes;
-using StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces;
+using StoneRed.LogicSimulator.Api.Attributes;
+using StoneRed.LogicSimulator.Api.Interfaces;
 
 using System;
 using System.Collections.Generic;
@@ -41,7 +41,7 @@ internal class LogicGatesManager
 
     public void LoadLogicGates()
     {
-        IEnumerable<Type> logicGateTypes = typeof(LogicGate)
+        IEnumerable<Type> logicGateTypes = GetType()
             .Assembly.GetTypes()
             .Where(t => t.IsSubclassOf(typeof(LogicGate)) && !t.IsAbstract);
 

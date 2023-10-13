@@ -9,8 +9,8 @@ using MonoGame.Extended.Input;
 
 using Myra.Graphics2D.UI;
 
+using StoneRed.LogicSimulator.Api.Interfaces;
 using StoneRed.LogicSimulator.Simulation;
-using StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces;
 using StoneRed.LogicSimulator.UserInterface.Windows;
 using StoneRed.LogicSimulator.Utilities;
 using StoneRed.LogicSimulator.WorldSaveSystem;
@@ -18,7 +18,7 @@ using StoneRed.LogicSimulator.WorldSaveSystem;
 using System;
 using System.Linq;
 
-using IColorable = StoneRed.LogicSimulator.Simulation.LogicGates.Interfaces.IColorable;
+using IColorable = StoneRed.LogicSimulator.Api.Interfaces.IColorable;
 
 namespace StoneRed.LogicSimulator.UserInterface.Screens;
 
@@ -119,7 +119,7 @@ internal class WorldScreen : SrlsScreen<Grid>
             }
 
             // Draw logic gate
-            if (logicGate is Simulation.LogicGates.Interfaces.IDrawable drawable)
+            if (logicGate is Api.Interfaces.IDrawable drawable)
             {
                 Rectangle rectangle = new Rectangle((logicGate.WorldData.Position * srls.Scale).ToPoint(), (logicGateSize * srls.Scale).ToPoint());
                 srls.SpriteBatch.Draw(drawable.Texture, rectangle, null, color, 0, Vector2.Zero, SpriteEffects.None, 0.2f);

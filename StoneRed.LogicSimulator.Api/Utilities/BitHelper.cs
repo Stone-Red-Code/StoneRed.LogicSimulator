@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace StoneRed.LogicSimulator.Utilities;
+﻿namespace StoneRed.LogicSimulator.Api.Utilities;
 
 #pragma warning disable S112 // General exceptions should never be thrown
 
