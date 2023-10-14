@@ -115,23 +115,25 @@ internal class WorldScreen : SrlsScreen<Grid>
             if (logicGate is IInteractable interactable)
             {
                 richTextLayout.Text = interactable.Info;
-                richTextLayout.Draw(srls.SpriteBatch, (new Vector2(0, 15) * srls.Scale) + (logicGate.WorldData.Position * srls.Scale), Color.Black, new Vector2(srls.Scale, srls.Scale), layerDepth: 0);
+                richTextLayout.Draw(srls.SpriteBatch, (new Vector2(2, 17) + logicGate.WorldData.Position) * srls.Scale, Color.Black, new Vector2(srls.Scale, srls.Scale), layerDepth: 0);
             }
 
             // Draw logic gate
             if (logicGate is Api.Interfaces.IDrawable drawable)
             {
                 Rectangle rectangle = new Rectangle((logicGate.WorldData.Position * srls.Scale).ToPoint(), (logicGateSize * srls.Scale).ToPoint());
-                srls.SpriteBatch.Draw(drawable.Texture, rectangle, null, color, 0, Vector2.Zero, SpriteEffects.None, 0.2f);
+                srls.SpriteBatch.Draw(drawable.Texture, rectangle, null, color, 0, Vector2.Zero, SpriteEffects.None, 0.3f);
             }
             else
             {
-                srls.SpriteBatch.FillRectangle(logicGate.WorldData.Position * srls.Scale, logicGateSize * srls.Scale, color, 0.2f);
+                srls.SpriteBatch.FillRectangle(logicGate.WorldData.Position * srls.Scale, logicGateSize * srls.Scale, color, 0.3f);
             }
+
+            srls.SpriteBatch.DrawRectangle(logicGate.WorldData.Position * srls.Scale, logicGateSize * srls.Scale, Color.DarkGray, 2 * srls.Scale, 0.2f);
 
             // Draw text for components
             richTextLayout.Text = logicGate.WorldData.Name;
-            richTextLayout.Draw(srls.SpriteBatch, logicGate.WorldData.Position * srls.Scale, Color.Black, new Vector2(srls.Scale, srls.Scale), layerDepth: 0);
+            richTextLayout.Draw(srls.SpriteBatch, (logicGate.WorldData.Position + new Vector2(2, 2)) * srls.Scale, Color.Black, new Vector2(srls.Scale, srls.Scale), layerDepth: 0);
 
             // Draw logic gate connections
             foreach (LogicGateConnection connection in logicGate.LogicGateConnections)
@@ -150,7 +152,7 @@ internal class WorldScreen : SrlsScreen<Grid>
         if (selectedLogicGate is not null)
         {
             richTextLayout.Text = selectedLogicGate.WorldData.Name;
-            richTextLayout.Draw(srls.SpriteBatch, selectedLogicGate.WorldData.Position, Color.White, new Vector2(srls.Scale, srls.Scale), layerDepth: 0);
+            richTextLayout.Draw(srls.SpriteBatch, selectedLogicGate.WorldData.Position + (new Vector2(2, 2) * srls.Scale), Color.White, new Vector2(srls.Scale, srls.Scale), layerDepth: 0);
             srls.SpriteBatch.DrawRectangle(selectedLogicGate.WorldData.Position, logicGateSize * srls.Scale, Color.Red, 2 * srls.Scale);
         }
 
