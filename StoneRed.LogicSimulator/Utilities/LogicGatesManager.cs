@@ -1,12 +1,15 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 
+using StoneRed.LogicSimulator.Api;
 using StoneRed.LogicSimulator.Api.Attributes;
-using StoneRed.LogicSimulator.Api.Interfaces;
+using StoneRed.LogicSimulator.Misc;
 
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace StoneRed.LogicSimulator.Utilities;
 
@@ -41,9 +44,16 @@ internal class LogicGatesManager
 
     public void LoadLogicGates()
     {
-        IEnumerable<Type> logicGateTypes = GetType()
-            .Assembly.GetTypes()
-            .Where(t => t.IsSubclassOf(typeof(LogicGate)) && !t.IsAbstract);
+        IEnumerable<Type> logicGateTypes = GetLogicGateTypesFromAssembly(GetType().Assembly);
+
+        foreach (string directory in Directory.GetDirectories(Paths.GetModsPath()))
+        {
+            string modName = Path.GetFileName(directory) ?? string.Empty;
+            byte[] assemblyBytes = File.ReadAllBytes(Paths.GetModFilePath(modName));
+
+            Assembly assembly = Assembly.Load(assemblyBytes);
+            logicGateTypes = logicGateTypes.Concat(GetLogicGateTypesFromAssembly(assembly));
+        }
 
         foreach (Type type in logicGateTypes)
         {
@@ -91,6 +101,12 @@ internal class LogicGatesManager
         logicGate.GraphicsDevice = graphicsDevice;
         logicGate.Initialize();
         return true;
+    }
+
+    private IEnumerable<Type> GetLogicGateTypesFromAssembly(Assembly assembly)
+    {
+        return assembly.GetTypes()
+            .Where(t => t.IsSubclassOf(typeof(LogicGate)) && !t.IsAbstract);
     }
 }
 

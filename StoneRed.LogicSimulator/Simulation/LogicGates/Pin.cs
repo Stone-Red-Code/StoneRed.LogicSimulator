@@ -1,5 +1,5 @@
-﻿using StoneRed.LogicSimulator.Api.Attributes;
-using StoneRed.LogicSimulator.Api.Interfaces;
+﻿using StoneRed.LogicSimulator.Api;
+using StoneRed.LogicSimulator.Api.Attributes;
 
 namespace StoneRed.LogicSimulator.Simulation.LogicGates;
 

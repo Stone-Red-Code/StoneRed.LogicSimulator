@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 
 using MonoGame.Extended.Input;
-
+using StoneRed.LogicSimulator.Api;
 using StoneRed.LogicSimulator.Api.Attributes;
 using StoneRed.LogicSimulator.Api.Interfaces;
 

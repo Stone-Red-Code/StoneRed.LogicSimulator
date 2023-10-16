@@ -22,9 +22,9 @@ internal class LoadWorldWindow : SrlsWindow
 
         loadButton.Click += LoadButton_Clicked;
 
-        foreach (string directories in Directory.GetDirectories(Paths.GetWorldSavesPath()))
+        foreach (string directory in Directory.GetDirectories(Paths.GetWorldSavesPath()))
         {
-            string saveName = Path.GetFileName(directories) ?? string.Empty;
+            string saveName = Path.GetFileName(directory) ?? string.Empty;
             savesListBox.Items.Add(new(saveName));
         }
 

@@ -31,9 +31,9 @@ internal class SaveWorldWindow : SrlsWindow
         newSaveButton.Click += NewSaveButton_Click;
 
         int index = 0;
-        foreach (string directories in Directory.GetDirectories(Paths.GetWorldSavesPath()))
+        foreach (string directory in Directory.GetDirectories(Paths.GetWorldSavesPath()))
         {
-            string saveName = Path.GetFileName(directories) ?? string.Empty;
+            string saveName = Path.GetFileName(directory) ?? string.Empty;
             savesListBox.Items.Add(new(saveName));
 
             if (saveName == worldData.SaveName)

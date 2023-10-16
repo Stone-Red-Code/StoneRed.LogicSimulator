@@ -9,6 +9,7 @@ using MonoGame.Extended.Input;
 
 using Myra.Graphics2D.UI;
 
+using StoneRed.LogicSimulator.Api;
 using StoneRed.LogicSimulator.Api.Interfaces;
 using StoneRed.LogicSimulator.Simulation;
 using StoneRed.LogicSimulator.UserInterface.Windows;
@@ -33,8 +34,9 @@ internal class WorldScreen : SrlsScreen<Grid>
     private Label fpsLabel = null!;
     private Label upsLabel = null!;
     private Label positionLabel = null!;
-    private SpinButton frequency = null!;
-    private CheckBox highPerformance = null!;
+    private SpinButton frequencySpinButton = null!;
+    private CheckBox highPerformanceCheckBox = null!;
+    private CheckBox hideCablesBehindGatesCheckBox = null!;
     private ListBox nativeComponentsListBox = null!;
 
     private float fps;
@@ -69,8 +71,9 @@ internal class WorldScreen : SrlsScreen<Grid>
         positionLabel = infoPanel.FindChildById<Label>("position");
 
         VerticalStackPanel settingsPanel = Root.FindChildById<VerticalStackPanel>("settings");
-        frequency = settingsPanel.FindChildById<SpinButton>("frequency");
-        highPerformance = settingsPanel.FindChildById<CheckBox>("highPerformance");
+        frequencySpinButton = settingsPanel.FindChildById<SpinButton>("frequency");
+        highPerformanceCheckBox = settingsPanel.FindChildById<CheckBox>("highPerformance");
+        hideCablesBehindGatesCheckBox = settingsPanel.FindChildById<CheckBox>("hideCablesBehindGates");
 
         nativeComponentsListBox = Root.FindChildById<ListBox>("nativeComponents");
 
@@ -139,7 +142,7 @@ internal class WorldScreen : SrlsScreen<Grid>
             foreach (LogicGateConnection connection in logicGate.LogicGateConnections)
             {
                 Color lineColor = logicGate.GetCachedOutputBit(connection.OutputIndex) == 1 ? Color.Red : Color.LightBlue;
-                srls.SpriteBatch.DrawLine((logicGate.WorldData.Position * srls.Scale) + (logicGateSize / 2 * srls.Scale), (connection.LogicGate.WorldData.Position * srls.Scale) + (logicGateSize / 2 * srls.Scale), lineColor, 5 * srls.Scale, 0.1f);
+                srls.SpriteBatch.DrawLine((logicGate.WorldData.Position * srls.Scale) + (logicGateSize / 2 * srls.Scale), (connection.LogicGate.WorldData.Position * srls.Scale) + (logicGateSize / 2 * srls.Scale), lineColor, 5 * srls.Scale, hideCablesBehindGatesCheckBox.IsChecked ? 0.5f : 0.1f);
             }
         }
 
@@ -181,8 +184,8 @@ internal class WorldScreen : SrlsScreen<Grid>
         upsLabel.Text = $"FRQ: {FrequencyCalculator.CalculateFrequency(simulator.ActualTicksPerSecond)}/{FrequencyCalculator.CalculateFrequency(simulator.TargetTicksPerSecond)}{(simulator.HighPerformanceClock ? "*" : string.Empty)} {(simulator.ClockCalibrating && simulator.HighPerformanceClock ? $"[Calibrating... {calibrationPercentage}%]" : string.Empty)}";
         positionLabel.Text = $"X/Y: {(long)Math.Round(camera.Position.X / logicGateSize.X / srls.Scale)}/{(long)Math.Round(camera.Position.Y / logicGateSize.Y / srls.Scale)}";
 
-        simulator.TargetTicksPerSecond = (int)frequency.Value.GetValueOrDefault();
-        simulator.HighPerformanceClock = highPerformance.IsChecked;
+        simulator.TargetTicksPerSecond = (int)frequencySpinButton.Value.GetValueOrDefault();
+        simulator.HighPerformanceClock = highPerformanceCheckBox.IsChecked;
 
         fpsLabel.Font = srls.FontSystem.GetFont(10 * srls.Scale);
         upsLabel.Font = srls.FontSystem.GetFont(10 * srls.Scale);

@@ -2,7 +2,7 @@
 
 using StoneRed.LogicSimulator.Api.Utilities;
 
-namespace StoneRed.LogicSimulator.Api.Interfaces;
+namespace StoneRed.LogicSimulator.Api;
 #pragma warning disable S112 // General exceptions should never be thrown
 
 internal abstract class LogicGate

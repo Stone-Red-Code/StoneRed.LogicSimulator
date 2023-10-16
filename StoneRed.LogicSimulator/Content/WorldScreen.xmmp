@@ -13,12 +13,13 @@
     </VerticalStackPanel>
     <Panel GridColumn="2" TransformOrigin="1, 0" Background="#FFA500FF" Id="sidePanel">
       <VerticalStackPanel Id="settings">
-        <Label Text="Frequency:" />
+        <Label Text="Frequency:" TextColor="#000000FF" />
         <SpinButton Maximum="1E+09" Minimum="1" HorizontalAlignment="Stretch" Value="100" Integer="True" Id="frequency" />
-        <CheckBox Text="High Performance" Id="highPerformance" />
-        <Label Text="Native components:" Wrap="True" />
+        <CheckBox Text="High Performance" TextColor="#000000FF" Id="highPerformance" />        
+        <CheckBox Text="Hide cables behind gates" TextColor="#000000FF" Id="hideCablesBehindGates" />
+        <Label Text="Native components:" Wrap="True" TextColor="#000000FF" />
         <ListBox HorizontalAlignment="Stretch" Id="nativeComponents" />
-        <Label Text="Custom components:" Wrap="True" />
+        <Label Text="Custom components:" Wrap="True" TextColor="#000000FF" />
         <ListBox HorizontalAlignment="Stretch">
           <ListItem Text="This is a test 2" />
         </ListBox>

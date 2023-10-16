@@ -20,11 +20,6 @@ internal static class Paths
         return srlsAppDataPath;
     }
 
-    public static string GetAppDataPath(string fileName)
-    {
-        return Path.Combine(GetAppDataPath(), fileName);
-    }
-
     public static string GetAppDataPath(params string[] paths)
     {
         return Path.Combine(GetAppDataPath(), Path.Combine(paths));
@@ -52,7 +47,7 @@ internal static class Paths
 
     public static string GetWorldSavesPath()
     {
-        string savesPath = Path.Combine(GetAppDataPath(), "Saves");
+        string savesPath = GetAppDataPath("Saves");
 
         if (!Directory.Exists(savesPath))
         {
@@ -77,5 +72,34 @@ internal static class Paths
     public static string GetWorldSaveFilePath(string saveName)
     {
         return Path.Combine(GetWorldSaveDirectoryPath(saveName), saveName + ".srls");
+    }
+
+    public static string GetModsPath()
+    {
+        string modsPath = GetAppDataPath("Mods");
+
+        if (!Directory.Exists(modsPath))
+        {
+            _ = Directory.CreateDirectory(modsPath);
+        }
+
+        return modsPath;
+    }
+
+    public static string GetModDirectoryPath(string modName)
+    {
+        string modPath = Path.Combine(GetWorldSavesPath(), modName);
+
+        if (!Directory.Exists(modPath))
+        {
+            _ = Directory.CreateDirectory(modPath);
+        }
+
+        return modPath;
+    }
+
+    public static string GetModFilePath(string modName)
+    {
+        return Path.Combine(GetWorldSaveDirectoryPath(modName), modName + ".dll");
     }
 }
