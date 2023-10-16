@@ -74,6 +74,7 @@ internal class SaveWorldWindow : SrlsWindow
 
     private void SaveButton_Clicked(object? sender, EventArgs e)
     {
+        worldData.SaveName = savesListBox.SelectedItem.Text;
         Save();
     }
 
