@@ -35,6 +35,16 @@ internal static class Program
         sim.ConnectGates(a, inv2.Inputs[0], toInputBit: 0);
         sim.ConnectGates(inv2.Outputs[0], lamp, toInputBit: 0);
 
+        int httpSink = sim.AddGate(GateKind.Sink);
+        sim.ConnectGates(inv2.Outputs[0], httpSink, toInputBit: 0);
+        using var httpWatcher = sim.WatchGate(httpSink, (gateId, mask) =>
+        {
+            if ((mask & 1) != 0)
+            {
+                Console.WriteLine($"HTTP gate {gateId} fired at mask={mask:X}");
+            }
+        });
+
         sim.SetSource(a, value: false);
         sim.RunUntilStable();
         Console.WriteLine($"A=0 => Lamp={sim.GetOutput(lamp)} (expected False)");

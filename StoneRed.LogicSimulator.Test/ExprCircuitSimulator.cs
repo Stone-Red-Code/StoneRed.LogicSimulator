@@ -1,3 +1,4 @@
+using System;
 using System.Linq.Expressions;
 
 namespace StoneRed.LogicSimulator.Test;
@@ -35,6 +36,10 @@ public sealed class ExprCircuitSimulator
 
     private Action<int[], int[], int[]>? computeOutputs;
     private bool compiled;
+    private readonly List<GateWatcherEntry> gateWatchers = [];
+    private int nextWatcherId;
+
+    private sealed record GateWatcherEntry(int Id, int GateId, Action<int, int> Callback);
 
     public int GateCount => gateKinds.Count;
 
@@ -211,6 +216,7 @@ public sealed class ExprCircuitSimulator
         EnsureCompiled();
         computeOutputs!(inputMasks, outputMasks, sourceStates);
         Propagate();
+        NotifyWatchers();
     }
 
     public int RunUntilStable(int maxSteps = 1024)
@@ -528,6 +534,68 @@ public sealed class ExprCircuitSimulator
         return new MacroInstance(name, inputs, outputs);
     }
 
+    public IDisposable WatchGate(int gateId, Action<int, int> callback)
+    {
+        if (callback is null)
+        {
+            throw new ArgumentNullException(nameof(callback));
+        }
+
+        if ((uint)gateId >= (uint)gateKinds.Count)
+        {
+            throw new ArgumentOutOfRangeException(nameof(gateId));
+        }
+
+        int id = nextWatcherId++;
+        var entry = new GateWatcherEntry(id, gateId, callback);
+        gateWatchers.Add(entry);
+        return new GateWatcherSubscription(this, id);
+    }
+
+    private void RemoveWatcher(int id)
+    {
+        gateWatchers.RemoveAll(w => w.Id == id);
+    }
+
+    private void NotifyWatchers()
+    {
+        if (gateWatchers.Count == 0)
+        {
+            return;
+        }
+
+        GateWatcherEntry[] snapshot = gateWatchers.ToArray();
+        for (int i = 0; i < snapshot.Length; i++)
+        {
+            GateWatcherEntry entry = snapshot[i];
+            entry.Callback(entry.GateId, outputMasks[entry.GateId]);
+        }
+    }
+
+    private sealed class GateWatcherSubscription : IDisposable
+    {
+        private readonly ExprCircuitSimulator simulator;
+        private readonly int id;
+        private bool disposed;
+
+        public GateWatcherSubscription(ExprCircuitSimulator simulator, int id)
+        {
+            this.simulator = simulator;
+            this.id = id;
+        }
+
+        public void Dispose()
+        {
+            if (disposed)
+            {
+                return;
+            }
+
+            disposed = true;
+            simulator.RemoveWatcher(id);
+        }
+    }
+
     public bool TryRunUntilStable(int maxSteps, out int steps)
     {
         steps = 0;
@@ -542,7 +610,9 @@ public sealed class ExprCircuitSimulator
         {
             steps++;
             computeOutputs!(inputMasks, outputMasks, sourceStates);
-            if (!PropagateAndSwapDetectChange())
+            bool changed = PropagateAndSwapDetectChange();
+            NotifyWatchers();
+            if (!changed)
             {
                 return true;
             }
