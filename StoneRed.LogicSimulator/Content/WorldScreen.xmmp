@@ -15,7 +15,12 @@
       <VerticalStackPanel Id="settings">
         <Label Text="Frequency:" TextColor="#000000FF" />
         <SpinButton Maximum="1E+09" Minimum="1" HorizontalAlignment="Stretch" Value="100" Integer="True" Id="frequency" />
-        <CheckBox Text="High Performance" TextColor="#000000FF" Id="highPerformance" />        
+        <CheckBox Text="High Performance" TextColor="#000000FF" Id="highPerformance" />
+        <Label Text="Simulator Type:" TextColor="#000000FF" />
+        <ComboBox HorizontalAlignment="Stretch" Id="simulatorType">
+          <ListItem Text="Cycle" />
+          <ListItem Text="Event" />
+        </ComboBox>
         <CheckBox Text="Hide cables behind gates" TextColor="#000000FF" Id="hideCablesBehindGates" />
         <Label Text="Native components:" Wrap="True" TextColor="#000000FF" />
         <ListBox HorizontalAlignment="Stretch" Id="nativeComponents" />

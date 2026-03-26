@@ -26,6 +26,16 @@ internal class LogicGateSimulator
 
     public bool HighPerformanceClock { get; set; }
 
+    public SimulatorType SimulatorType
+    {
+        get;
+        set
+        {
+            field = value;
+            logicGatesUpdated = true;
+        }
+    } = SimulatorType.Cycle;
+
     public LogicGateSimulator(IEnumerable<LogicGate> logicGates)
     {
         foreach (LogicGate logicGate in logicGates)
@@ -103,7 +113,7 @@ internal class LogicGateSimulator
         float sleepDelayIterations = 10000;
         int sleepDelayMs = 10;
 
-        circuitSimulator = new CycleCircuitSimulator();
+        circuitSimulator = CreateSimulator();
 
         Timer timeCheckTimer = new Timer(_ =>
         {
@@ -132,7 +142,7 @@ internal class LogicGateSimulator
 
             if (logicGatesUpdated)
             {
-                circuitSimulator = new CycleCircuitSimulator();
+                circuitSimulator = CreateSimulator();
 
                 // Register all gates first
                 foreach (LogicGate gate in logicGates.Values)
@@ -172,5 +182,15 @@ internal class LogicGateSimulator
         }
 
         _ = timeCheckTimer.Change(Timeout.Infinite, Timeout.Infinite);
+    }
+
+    private ICircuitSimulator CreateSimulator()
+    {
+        return SimulatorType switch
+        {
+            SimulatorType.Event => new EventCircuitSimulator(),
+            SimulatorType.Cycle => new CycleCircuitSimulator(),
+            _ => throw new NotImplementedException()
+        };
     }
 }

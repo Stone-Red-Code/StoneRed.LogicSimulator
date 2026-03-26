@@ -36,6 +36,7 @@ internal class WorldScreen : SrlsScreen<Grid>
     private Label positionLabel = null!;
     private SpinButton frequencySpinButton = null!;
     private CheckBox highPerformanceCheckBox = null!;
+    private ComboBox simulatorTypeComboBox = null!;
     private CheckBox hideCablesBehindGatesCheckBox = null!;
     private ListBox nativeComponentsListBox = null!;
 
@@ -73,6 +74,9 @@ internal class WorldScreen : SrlsScreen<Grid>
         VerticalStackPanel settingsPanel = Root.FindChildById<VerticalStackPanel>("settings");
         frequencySpinButton = settingsPanel.FindChildById<SpinButton>("frequency");
         highPerformanceCheckBox = settingsPanel.FindChildById<CheckBox>("highPerformance");
+        simulatorTypeComboBox = settingsPanel.FindChildById<ComboBox>("simulatorType");
+        simulatorTypeComboBox.SelectedIndex = 0; // Default to Cycle
+        simulatorTypeComboBox.SelectedIndexChanged += SimulatorTypeComboBox_SelectedIndexChanged;
         hideCablesBehindGatesCheckBox = settingsPanel.FindChildById<CheckBox>("hideCablesBehindGates");
 
         nativeComponentsListBox = Root.FindChildById<ListBox>("nativeComponents");
@@ -326,6 +330,15 @@ internal class WorldScreen : SrlsScreen<Grid>
     private void NativeComponentsListBox_SelectedIndexChanged(object? sender, EventArgs e)
     {
         SelectLogicGate();
+    }
+
+    private void SimulatorTypeComboBox_SelectedIndexChanged(object? sender, EventArgs e)
+    {
+        simulator.SimulatorType = simulatorTypeComboBox.SelectedIndex switch
+        {
+            1 => SimulatorType.Event,
+            _ => SimulatorType.Cycle
+        };
     }
 
     private void ShowConnectionContextMenu(LogicGate logicGate, Point position, bool showInputs)
