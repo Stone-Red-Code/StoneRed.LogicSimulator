@@ -2,12 +2,25 @@ using System.Linq.Expressions;
 
 namespace StoneRed.LogicSimulator.Simulation;
 
+/// <summary>
+/// A synchronous cycle-based circuit simulator that evaluates all gates every cycle.
+/// Provides deterministic timing and predictable evaluation order (gate 0 to N).
+/// </summary>
+/// <remarks>
+/// This simulator evaluates all gates synchronously each step, making it simpler and more
+/// predictable than <see cref="EventCircuitSimulator"/>. It's ideal for synchronous digital
+/// designs where deterministic timing is important. Less efficient for sparse circuits
+/// but has uniform performance characteristics.
+/// </remarks>
 public sealed class CycleCircuitSimulator : SimulatorBase
 {
     private int[] nextInputMasks = [];
     private Action<int[], int[], int[]> computeOutputs = (_, _, _) => { };
     private int[] previousOutputMasks = [];
 
+    /// <summary>
+    /// Ensures internal storage arrays are properly sized for the current gate count.
+    /// </summary>
     protected override void EnsureStorage()
     {
         base.EnsureStorage();
@@ -18,6 +31,9 @@ public sealed class CycleCircuitSimulator : SimulatorBase
         }
     }
 
+    /// <summary>
+    /// Resets the circuit to initial state, clearing all input and output buffers.
+    /// </summary>
     public override void Reset()
     {
         base.Reset();
@@ -25,6 +41,10 @@ public sealed class CycleCircuitSimulator : SimulatorBase
         Array.Clear(previousOutputMasks);
     }
 
+    /// <summary>
+    /// Executes one simulation cycle by evaluating all gates synchronously,
+    /// then propagating outputs to inputs for the next cycle.
+    /// </summary>
     public override void Step()
     {
         EnsureCompiled();
@@ -90,6 +110,12 @@ public sealed class CycleCircuitSimulator : SimulatorBase
         return changed;
     }
 
+    /// <summary>
+    /// Runs the simulation until inputs stabilize (no changes between cycles) or maxSteps is reached.
+    /// </summary>
+    /// <param name="maxSteps">Maximum number of cycles to execute.</param>
+    /// <param name="steps">Output parameter containing the number of cycles executed.</param>
+    /// <returns>True if the circuit stabilized; false if maxSteps was exceeded.</returns>
     public override bool TryRunUntilStable(int maxSteps, out int steps)
     {
         steps = 0;
@@ -119,6 +145,10 @@ public sealed class CycleCircuitSimulator : SimulatorBase
         return !changed;
     }
 
+    /// <summary>
+    /// Compiles a single evaluator that computes outputs for all gates in one call.
+    /// All gate logic is combined into a single compiled lambda expression.
+    /// </summary>
     protected override void CompileEngine()
     {
         ParameterExpression inputsParam = Expression.Parameter(typeof(int[]), "inputs");
@@ -139,6 +169,10 @@ public sealed class CycleCircuitSimulator : SimulatorBase
         computeOutputs = Expression.Lambda<Action<int[], int[], int[]>>(Expression.Block(body), inputsParam, outputsParam, sourcesParam).Compile();
     }
 
+    /// <summary>
+    /// Creates a new instance of CycleCircuitSimulator for internal use (e.g., LUT computation).
+    /// </summary>
+    /// <returns>A new CycleCircuitSimulator instance.</returns>
     protected override SimulatorBase CreateInternalSimulator()
     {
         return new CycleCircuitSimulator();

@@ -1,5 +1,9 @@
 namespace StoneRed.LogicSimulator.Simulation;
 
+/// <summary>
+/// Defines a reusable circuit component that can be registered as a macro gate.
+/// Circuit definitions specify gates, connections, input pins, output pins, and nested macro instances.
+/// </summary>
 public sealed class CircuitDefinition
 {
     private readonly List<GateKind> gateKinds = [];
@@ -8,14 +12,44 @@ public sealed class CircuitDefinition
     private readonly List<int> outputPins = [];
     private readonly List<MacroInstanceDef> macroInstances = [];
 
+    /// <summary>
+    /// Gets the read-only list of gate types in this circuit definition.
+    /// </summary>
     public IReadOnlyList<GateKind> GateKinds => gateKinds;
+
+    /// <summary>
+    /// Gets the read-only list of connections between gates.
+    /// </summary>
     public IReadOnlyList<(int FromGate, int ToGate, byte ToInputBit)> Connections => connections;
+
+    /// <summary>
+    /// Gets the read-only list of gate IDs designated as input pins.
+    /// </summary>
     public IReadOnlyList<int> InputPins => inputPins;
+
+    /// <summary>
+    /// Gets the read-only list of gate IDs designated as output pins.
+    /// </summary>
     public IReadOnlyList<int> OutputPins => outputPins;
+
+    /// <summary>
+    /// Gets the read-only list of nested macro instances within this definition.
+    /// </summary>
     public IReadOnlyList<MacroInstanceDef> MacroInstances => macroInstances;
 
+    /// <summary>
+    /// Represents a nested macro gate instance within a circuit definition.
+    /// </summary>
+    /// <param name="Name">The name of the macro gate to instantiate.</param>
+    /// <param name="Inputs">Array of gate IDs representing the input connections.</param>
+    /// <param name="Outputs">Array of gate IDs representing the output connections.</param>
     public sealed record MacroInstanceDef(string Name, int[] Inputs, int[] Outputs);
 
+    /// <summary>
+    /// Adds a logic gate to the circuit definition.
+    /// </summary>
+    /// <param name="kind">The type of gate to add.</param>
+    /// <returns>The gate ID assigned to the newly created gate.</returns>
     public int AddGate(GateKind kind)
     {
         int id = gateKinds.Count;
@@ -23,6 +57,10 @@ public sealed class CircuitDefinition
         return id;
     }
 
+    /// <summary>
+    /// Adds a Source gate and marks it as an input pin of this circuit.
+    /// </summary>
+    /// <returns>The gate ID of the newly created input pin.</returns>
     public int AddInputPin()
     {
         int id = AddGate(GateKind.Source);
@@ -30,6 +68,10 @@ public sealed class CircuitDefinition
         return id;
     }
 
+    /// <summary>
+    /// Adds a Sink gate and marks it as an output pin of this circuit.
+    /// </summary>
+    /// <returns>The gate ID of the newly created output pin.</returns>
     public int AddOutputPin()
     {
         int id = AddGate(GateKind.Sink);
@@ -37,6 +79,16 @@ public sealed class CircuitDefinition
         return id;
     }
 
+    /// <summary>
+    /// Adds a nested macro gate instance to the circuit definition.
+    /// Creates Buffer gates for inputs and Sink gates for outputs.
+    /// </summary>
+    /// <param name="name">The name of the macro gate to instantiate.</param>
+    /// <param name="inputCount">The number of input pins the macro requires.</param>
+    /// <param name="outputCount">The number of output pins the macro provides.</param>
+    /// <returns>A <see cref="MacroInstanceDef"/> containing the gate IDs for the instance's pins.</returns>
+    /// <exception cref="ArgumentException">Thrown when name is null or whitespace.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when inputCount or outputCount is negative.</exception>
     public MacroInstanceDef AddMacroInstance(string name, int inputCount, int outputCount)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -65,6 +117,13 @@ public sealed class CircuitDefinition
         return instance;
     }
 
+    /// <summary>
+    /// Connects the output of one gate to the input of another gate.
+    /// </summary>
+    /// <param name="fromGate">The gate ID whose output will be connected.</param>
+    /// <param name="toGate">The gate ID that will receive the signal.</param>
+    /// <param name="toInputBit">The input bit position (0-31) on the destination gate.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when gate IDs are invalid or toInputBit is not between 0 and 31.</exception>
     public void Connect(int fromGate, int toGate, int toInputBit)
     {
         if ((uint)fromGate >= (uint)gateKinds.Count)
@@ -85,6 +144,11 @@ public sealed class CircuitDefinition
         connections.Add((fromGate, toGate, (byte)toInputBit));
     }
 
+    /// <summary>
+    /// Validates the circuit definition for correctness.
+    /// Ensures proper gate types, valid connections, and no structural errors.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown when the circuit definition contains invalid structure or gate usage.</exception>
     public void Validate()
     {
         bool[] hasIncoming = new bool[gateKinds.Count];
