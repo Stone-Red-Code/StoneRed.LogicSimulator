@@ -28,6 +28,7 @@ public abstract class SimulatorBase : ICircuitSimulator
     private readonly List<GateWatcherEntry> allWatchers = [];
     private Action<int, int>[][] watcherCache = [];
     private int[] gatesWithWatchers = [];
+    protected bool hasAnyWatchers;
     protected int nextWatcherId;
 
     protected sealed record GateWatcherEntry(int Id, int GateId, Action<int, int> Callback);
@@ -169,6 +170,7 @@ public abstract class SimulatorBase : ICircuitSimulator
         GateWatcherEntry entry = new GateWatcherEntry(id, gateId, callback);
         allWatchers.Add(entry);
         RebuildWatcherCache();
+        compiled = false;
         return new GateWatcherSubscription(this, id);
     }
 
@@ -176,6 +178,7 @@ public abstract class SimulatorBase : ICircuitSimulator
     {
         _ = allWatchers.RemoveAll(w => w.Id == id);
         RebuildWatcherCache();
+        compiled = false;
     }
 
     private void RebuildWatcherCache()
@@ -193,18 +196,22 @@ public abstract class SimulatorBase : ICircuitSimulator
         }
 
         gatesWithWatchers = [.. activeGates];
+        hasAnyWatchers = allWatchers.Count > 0;
     }
 
-    protected void NotifyAllWatchers()
+    protected void NotifyAllWatchers(int[] previousOutputMasks)
     {
         for (int i = 0; i < gatesWithWatchers.Length; i++)
         {
             int gateId = gatesWithWatchers[i];
-            Action<int, int>[] callbacks = watcherCache[gateId];
-            int val = outputMasks[gateId];
-            for (int j = 0; j < callbacks.Length; j++)
+            if (outputMasks[gateId] != previousOutputMasks[gateId])
             {
-                callbacks[j](gateId, val);
+                Action<int, int>[] callbacks = watcherCache[gateId];
+                int val = outputMasks[gateId];
+                for (int j = 0; j < callbacks.Length; j++)
+                {
+                    callbacks[j](gateId, val);
+                }
             }
         }
     }
@@ -275,7 +282,7 @@ public abstract class SimulatorBase : ICircuitSimulator
             GateKind.Buffer => Expression.Condition(Expression.NotEqual(Expression.And(inMask, Expression.Constant(1)), Expression.Constant(0)), Expression.Constant(1), Expression.Constant(0)),
             GateKind.Sink => Expression.Condition(Expression.NotEqual(Expression.And(inMask, Expression.Constant(1)), Expression.Constant(0)), Expression.Constant(1), Expression.Constant(0)),
             GateKind.Lut => Expression.ArrayIndex(lutDataConst, Expression.Add(Expression.Constant(lutOffsets[gateId]), Expression.And(inMask, Expression.Constant(lutMasks[gateId])))),
-            _ => throw new ArgumentOutOfRangeException(),
+            _ => throw new InvalidOperationException($"Unknown gate kind: {gateKinds[gateId]}")
         };
     }
 

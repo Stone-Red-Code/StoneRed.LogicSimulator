@@ -6,6 +6,7 @@ public sealed class CycleCircuitSimulator : SimulatorBase
 {
     private int[] nextInputMasks = [];
     private Action<int[], int[], int[]> computeOutputs = (_, _, _) => { };
+    private int[] previousOutputMasks = [];
 
     protected override void EnsureStorage()
     {
@@ -13,6 +14,7 @@ public sealed class CycleCircuitSimulator : SimulatorBase
         if (nextInputMasks.Length != gateKinds.Count)
         {
             nextInputMasks = new int[gateKinds.Count];
+            previousOutputMasks = new int[gateKinds.Count];
         }
     }
 
@@ -20,9 +22,8 @@ public sealed class CycleCircuitSimulator : SimulatorBase
     {
         base.Reset();
         Array.Clear(nextInputMasks);
+        Array.Clear(previousOutputMasks);
     }
-
-    protected override void OnSourceChanged(int gateId) { }
 
     public override void Step()
     {
@@ -32,9 +33,13 @@ public sealed class CycleCircuitSimulator : SimulatorBase
             Reset();
         }
 
+        (outputMasks, previousOutputMasks) = (previousOutputMasks, outputMasks);
         computeOutputs(inputMasks, outputMasks, sourceStates);
         PropagateAndSwap();
-        NotifyAllWatchers();
+        if (hasAnyWatchers)
+        {
+            NotifyAllWatchers(previousOutputMasks);
+        }
     }
 
     private void PropagateAndSwap()
@@ -103,9 +108,13 @@ public sealed class CycleCircuitSimulator : SimulatorBase
         while (changed && steps < maxSteps)
         {
             steps++;
+            (outputMasks, previousOutputMasks) = (previousOutputMasks, outputMasks);
             computeOutputs(inputMasks, outputMasks, sourceStates);
             changed = PropagateAndSwapDetectChange();
-            NotifyAllWatchers();
+            if (hasAnyWatchers)
+            {
+                NotifyAllWatchers(previousOutputMasks);
+            }
         }
         return !changed;
     }
