@@ -140,6 +140,63 @@ public abstract class AdvancedCircuitTestsBase
     }
 
     [TestMethod]
+    public void TestSRLatchNand()
+    {
+        // SR Latch using NAND gates
+        // Q  = NAND(S', Q')
+        // Q' = NAND(R', Q)
+        // Note: S' and R' are active-low (inverted) inputs
+        ICircuitSimulator sim = CreateSimulator();
+
+        int s = sim.AddGate(GateKind.Source);
+        int r = sim.AddGate(GateKind.Source);
+
+        int andQ = sim.AddGate(GateKind.And2);
+        int nandQ = sim.AddGate(GateKind.Not); // Q
+
+        int andQNot = sim.AddGate(GateKind.And2);
+        int nandQNot = sim.AddGate(GateKind.Not); // Q'
+
+        // Q = NAND(S, Q')
+        sim.ConnectGates(s, andQ, 0);
+        sim.ConnectGates(nandQNot, andQ, 1);
+        sim.ConnectGates(andQ, nandQ, 0);
+
+        // Q' = NAND(R, Q)
+        sim.ConnectGates(r, andQNot, 0);
+        sim.ConnectGates(nandQ, andQNot, 1);
+        sim.ConnectGates(andQNot, nandQNot, 0);
+
+        int qSink = sim.AddGate(GateKind.Sink);
+        int qNotSink = sim.AddGate(GateKind.Sink);
+        sim.ConnectGates(nandQ, qSink, 0);
+        sim.ConnectGates(nandQNot, qNotSink, 0);
+
+        // Set state (S'=0, R'=1) -> Q=1, Q'=0
+        sim.SetSource(s, false);
+        sim.SetSource(r, true);
+        _ = sim.RunUntilStable(10000);
+        Assert.IsTrue(sim.GetOutput(qSink), "Q should be 1 after Set (S'=0)");
+        Assert.IsFalse(sim.GetOutput(qNotSink), "Q' should be 0 after Set (S'=0)");
+
+        // Hold (S'=1, R'=1) -> Q=1
+        sim.SetSource(s, true);
+        _ = sim.RunUntilStable(10000);
+        Assert.IsTrue(sim.GetOutput(qSink), "Q should stay 1");
+
+        // Reset state (S'=1, R'=0) -> Q=0, Q'=1
+        sim.SetSource(r, false);
+        _ = sim.RunUntilStable(10000);
+        Assert.IsFalse(sim.GetOutput(qSink), "Q should be 0 after Reset (R'=0)");
+        Assert.IsTrue(sim.GetOutput(qNotSink), "Q' should be 1 after Reset (R'=0)");
+
+        // Hold (S'=1, R'=1) -> Q=0
+        sim.SetSource(r, true);
+        _ = sim.RunUntilStable(10000);
+        Assert.IsFalse(sim.GetOutput(qSink), "Q should stay 0");
+    }
+
+    [TestMethod]
     public void TestDLatch()
     {
         ICircuitSimulator sim = CreateSimulator();
