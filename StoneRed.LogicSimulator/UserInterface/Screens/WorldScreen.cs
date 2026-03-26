@@ -253,12 +253,12 @@ internal class WorldScreen : SrlsScreen<Grid>
             }
         }
 
-        if (keyboardState.IsKeyDown(Keys.C))
+        if (keyboardState.WasKeyJustUp(Keys.C))
         {
             UnSelectLogicGate();
         }
 
-        if (keyboardState.IsKeyDown(Keys.Q))
+        if (keyboardState.WasKeyJustUp(Keys.Escape))
         {
             blockInput = true;
 
@@ -268,7 +268,7 @@ internal class WorldScreen : SrlsScreen<Grid>
             srls.ShowWindow(new QuickMenu(worldData));
         }
 
-        if (keyboardState.IsKeyDown(Keys.Home))
+        if (keyboardState.WasKeyJustUp(Keys.Home))
         {
             camera.Position = Vector2.Zero;
         }
