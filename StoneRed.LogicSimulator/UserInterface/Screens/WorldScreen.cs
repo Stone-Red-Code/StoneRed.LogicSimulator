@@ -141,7 +141,7 @@ internal class WorldScreen : SrlsScreen<Grid>
             // Draw logic gate connections
             foreach (LogicGateConnection connection in logicGate.LogicGateConnections)
             {
-                Color lineColor = logicGate.GetCachedOutputBit(connection.OutputIndex) == 1 ? Color.Red : Color.LightBlue;
+                Color lineColor = simulator.GetGateOutput(logicGate) ? Color.Red : Color.LightBlue;
                 srls.SpriteBatch.DrawLine((logicGate.WorldData.Position * srls.Scale) + (logicGateSize / 2 * srls.Scale), (connection.LogicGate.WorldData.Position * srls.Scale) + (logicGateSize / 2 * srls.Scale), lineColor, 5 * srls.Scale, hideCablesBehindGatesCheckBox.IsChecked ? 0.5f : 0.1f);
             }
         }
@@ -423,6 +423,7 @@ internal class WorldScreen : SrlsScreen<Grid>
             }
         }
 
+        simulator.LogicGatesUpdated();
         connectionContext = null;
     }
 

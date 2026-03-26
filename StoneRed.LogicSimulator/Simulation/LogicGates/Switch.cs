@@ -12,6 +12,8 @@ namespace StoneRed.LogicSimulator.Simulation.LogicGates;
 [LogicGateDescription("A switch is a toggleable switch that can be turned on and off.")]
 internal class Switch : LogicGate, IInteractable, IColorable
 {
+    private ICircuitSimulator? circuitSimulator;
+    private int gateId;
     private bool isPressed;
     public override int OutputCount { get; set; } = 1;
 
@@ -28,17 +30,15 @@ internal class Switch : LogicGate, IInteractable, IColorable
 
         Color = isPressed ? Color.Green : Color.Purple;
         Info = isPressed ? "ON" : "OFF";
+
+        circuitSimulator?.SetSource(gateId, isPressed);
     }
 
-    protected override void Execute()
+    protected internal override void Register(ICircuitSimulator circuitSimulator)
     {
-        if (isPressed)
-        {
-            SetOutputBit(1, 0);
-        }
-        else
-        {
-            SetOutputBit(0, 0);
-        }
+        this.circuitSimulator = circuitSimulator;
+
+        SimulatorGateId = circuitSimulator.AddGate(GateKind.Source);
+        gateId = SimulatorGateId;
     }
 }

@@ -11,8 +11,12 @@ namespace StoneRed.LogicSimulator.Simulation.LogicGates;
 [LogicGateDescription("A clock is a circuit that oscillates between a high and a low state.")]
 internal class Clock : LogicGate, IInteractable
 {
+    private ICircuitSimulator? circuitSimulator;
+    private int gateId;
     private int count = 0;
     private int tickRate = 0;
+    private bool currentState = false;
+    
     public override int OutputCount { get; set; } = 1;
 
     public override int InputCount { get; set; } = 0;
@@ -49,28 +53,41 @@ internal class Clock : LogicGate, IInteractable
         tickRate = Math.Clamp(tickRate, 0, int.MaxValue);
     }
 
-    protected override void Execute()
+    protected internal override void Register(ICircuitSimulator circuitSimulator)
     {
-        if (tickRate <= 0)
+        this.circuitSimulator = circuitSimulator;
+        SimulatorGateId = circuitSimulator.AddGate(GateKind.Source);
+        gateId = SimulatorGateId;
+        
+        // Watch own output to count ticks and toggle
+        circuitSimulator.WatchGate(SimulatorGateId, (oldMask, newMask) =>
         {
-            SetOutputBit(0, 0);
-            return;
-        }
+            if (tickRate <= 0)
+            {
+                count = 0;
+                currentState = false;
+                circuitSimulator.SetSource(gateId, false);
+                return;
+            }
 
-        if (count >= tickRate * 2)
-        {
-            count = 0;
-        }
+            // Count the tick
+            count++;
 
-        count++;
+            if (count >= tickRate * 2)
+            {
+                count = 0;
+            }
 
-        if (count > tickRate)
-        {
-            SetOutputBit(1, 0);
-        }
-        else
-        {
-            SetOutputBit(0, 0);
-        }
+            // Toggle state based on count
+            bool newState = count > tickRate;
+            if (newState != currentState)
+            {
+                currentState = newState;
+                circuitSimulator.SetSource(gateId, newState);
+            }
+        });
+        
+        // Initialize to off state
+        circuitSimulator.SetSource(gateId, false);
     }
 }

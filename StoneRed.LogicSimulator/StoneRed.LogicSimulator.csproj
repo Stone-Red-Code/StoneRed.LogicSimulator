@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RollForward>Major</RollForward>
     <PublishReadyToRun>false</PublishReadyToRun>
     <TieredCompilation>false</TieredCompilation>
@@ -35,6 +35,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StoneRed.LogicSimulator.Api\StoneRed.LogicSimulator.Api.csproj" />
+    <ProjectReference Include="..\StoneRed.LogicSimulator.Simulation\StoneRed.LogicSimulator.Simulation.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="UserInterface\Windows\SettingsWindow.cs">

@@ -14,6 +14,8 @@ internal class LogicGateSimulator
     private DateTime dateTime;
     private bool logicGatesUpdated = false;
     private ulong logicGateId = 0;
+    private ICircuitSimulator? circuitSimulator;
+
     public int TargetTicksPerSecond { get; set; } = 100;
 
     public int ActualTicksPerSecond { get; private set; }
@@ -34,12 +36,17 @@ internal class LogicGateSimulator
 
     public void Start()
     {
+        if (IsRunning)
+        {
+            return;
+        }
+
+        IsRunning = true;
+
         Thread thread = new Thread(SimulationThread)
         {
             IsBackground = true
         };
-
-        IsRunning = true;
 
         thread.Start();
     }
@@ -53,6 +60,11 @@ internal class LogicGateSimulator
     {
         gate.Id = logicGateId++;
         logicGatesUpdated = logicGates.TryAdd(gate.Id, gate);
+    }
+
+    public void LogicGatesUpdated()
+    {
+        logicGatesUpdated = true;
     }
 
     public LogicGate GetLogicGate(ulong id)
@@ -75,12 +87,44 @@ internal class LogicGateSimulator
         logicGatesUpdated = logicGates.TryRemove(logicGate.Id, out _);
     }
 
+    public bool GetGateOutput(LogicGate gate)
+    {
+        if (circuitSimulator == null || gate.SimulatorGateId < 0)
+        {
+            return false;
+        }
+
+        return circuitSimulator.GetOutput(gate.SimulatorGateId);
+    }
+
     private void SimulationThread()
     {
         int tps = 0;
-        float iterations = 10000;
+        float sleepDelayIterations = 10000;
+        int sleepDelayMs = 10;
 
-        LogicGate[] logicGatesArray = logicGates.Values.ToArray();
+        circuitSimulator = new CycleCircuitSimulator();
+
+        Timer timeCheckTimer = new Timer(_ =>
+        {
+            ActualTicksPerSecond = tps;
+            dateTime = DateTime.Now;
+            tps = 0;
+
+            if (HighPerformanceClock)
+            {
+                float percentage = Math.Abs((TargetTicksPerSecond - (float)ActualTicksPerSecond) / Math.Abs((float)ActualTicksPerSecond) * 100);
+
+                sleepDelayIterations *= (float)ActualTicksPerSecond / TargetTicksPerSecond;
+
+                ClockCalibrating = percentage > 5;
+            }
+            else
+            {
+                // Update cached sleep delay when target TPS changes
+                sleepDelayMs = Math.Max((int)(1000f / TargetTicksPerSecond), 1);
+            }
+        }, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
 
         while (IsRunning)
         {
@@ -88,55 +132,45 @@ internal class LogicGateSimulator
 
             if (logicGatesUpdated)
             {
-                logicGatesArray = logicGates.Values.ToArray();
+                circuitSimulator = new CycleCircuitSimulator();
+
+                // Register all gates first
+                foreach (LogicGate gate in logicGates.Values)
+                {
+                    gate.Register(circuitSimulator);
+                }
+
+                // Then connect them based on LogicGate connections
+                foreach (LogicGate gate in logicGates.Values)
+                {
+                    foreach (LogicGateConnection connection in gate.LogicGateConnections)
+                    {
+                        // Connect: this gate's output → connected gate's input
+                        circuitSimulator.ConnectGates(
+                            gate.SimulatorGateId,
+                            connection.LogicGate.SimulatorGateId,
+                            connection.InputIndex
+                        );
+                    }
+                }
+
+                circuitSimulator.Reset();
+
                 logicGatesUpdated = false;
             }
 
-            if (DateTime.Now > dateTime.AddSeconds(1))
-            {
-                ActualTicksPerSecond = tps;
-                dateTime = DateTime.Now;
-                tps = 0;
-
-                if (HighPerformanceClock)
-                {
-                    float percentage = Math.Abs((TargetTicksPerSecond - (float)ActualTicksPerSecond) / Math.Abs((float)ActualTicksPerSecond) * 100);
-
-                    if (ActualTicksPerSecond / 2 > TargetTicksPerSecond)
-                    {
-                        iterations *= 2;
-                    }
-                    else if (ActualTicksPerSecond * 2 < TargetTicksPerSecond)
-                    {
-                        iterations /= 2;
-                    }
-                    else if (percentage > 5)
-                    {
-                        iterations *= (float)ActualTicksPerSecond / TargetTicksPerSecond;
-                    }
-
-                    ClockCalibrating = percentage > 5;
-                }
-            }
-
-            for (int i = 0; i < logicGatesArray.Length; i++)
-            {
-                logicGatesArray[i].NextTick();
-            }
-
-            for (int i = 0; i < logicGatesArray.Length; i++)
-            {
-                logicGatesArray[i].Update();
-            }
+            circuitSimulator.Step();
 
             if (HighPerformanceClock)
             {
-                Thread.SpinWait((int)iterations);
+                Thread.SpinWait((int)sleepDelayIterations);
             }
             else
             {
-                Thread.Sleep(Math.Max((int)(1f / TargetTicksPerSecond * 1000), 1));
+                Thread.Sleep(sleepDelayMs);
             }
         }
+
+        _ = timeCheckTimer.Change(Timeout.Infinite, Timeout.Infinite);
     }
 }

@@ -11,11 +11,8 @@ internal class Pin : LogicGate
 
     public override int InputCount { get; set; } = 1;
 
-    protected override void Execute()
+    protected internal override void Register(ICircuitSimulator circuitSimulator)
     {
-        for (int i = 0; i < InputCount; i++)
-        {
-            SetOutputBit(GetInputBit(i), i);
-        }
+        SimulatorGateId = circuitSimulator.AddGate(GateKind.Buffer);
     }
 }

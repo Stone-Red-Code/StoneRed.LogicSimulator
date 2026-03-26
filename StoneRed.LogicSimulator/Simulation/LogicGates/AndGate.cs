@@ -11,8 +11,8 @@ internal class AndGate : LogicGate
 
     public override int OutputCount { get; set; } = 1;
 
-    protected override void Execute()
+    protected internal override void Register(ICircuitSimulator circuitSimulator)
     {
-        SetOutputBit(GetInputBit(0) == 1 && GetInputBit(1) == 1 ? 1 : 0, 0);
+        SimulatorGateId = circuitSimulator.AddGate(GateKind.And2);
     }
 }

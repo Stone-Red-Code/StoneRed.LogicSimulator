@@ -15,8 +15,15 @@ internal class Lamp : LogicGate, IColorable
 
     public Color Color { get; set; } = Color.CadetBlue;
 
-    protected override void Execute()
+    protected internal override void Register(ICircuitSimulator circuitSimulator)
     {
-        Color = GetInputBit(0) == 0 ? Color.CadetBlue : Color.Yellow;
+        SimulatorGateId = circuitSimulator.AddGate(GateKind.Sink);
+        
+        // Watch input to update lamp color
+        circuitSimulator.WatchGate(SimulatorGateId, (oldMask, newMask) =>
+        {
+            bool isOn = (newMask & 1) != 0;
+            Color = isOn ? Color.Yellow : Color.CadetBlue;
+        });
     }
 }
