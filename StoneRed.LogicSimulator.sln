@@ -1,13 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.4.11605.240 stable
+VisualStudioVersion = 18.4.11605.240
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StoneRed.LogicSimulator", "StoneRed.LogicSimulator\StoneRed.LogicSimulator.csproj", "{7B259CCA-2947-4DF8-8252-7CF75FE39B8E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StoneRed.LogicSimulator.Api", "StoneRed.LogicSimulator.Api\StoneRed.LogicSimulator.Api.csproj", "{CD9C3C4D-4AF1-4A31-BDED-34CB91503B4C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StoneRed.LogicSimulator.Test", "StoneRed.LogicSimulator.Test\StoneRed.LogicSimulator.Test.csproj", "{996500F0-3CD5-912F-03D5-25011C2BD106}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StoneRed.LogicSimulator.Simulation", "StoneRed.LogicSimulator.Simulation\StoneRed.LogicSimulator.Simulation.csproj", "{08D6072E-CEC7-FA4B-00E7-C0C88E8C5A38}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StoneRed.LogicSimulator.Benchmarks", "StoneRed.LogicSimulator.Benchmarks\StoneRed.LogicSimulator.Benchmarks.csproj", "{7F65C796-E597-2D31-BA0C-EE9A672A68EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StoneRed.LogicSimulator.Tests", "StoneRed.LogicSimulator.Tests\StoneRed.LogicSimulator.Tests.csproj", "{82A09AEE-FA5E-7E76-29A2-4FB1B78E3CD5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +27,18 @@ Global
 		{CD9C3C4D-4AF1-4A31-BDED-34CB91503B4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CD9C3C4D-4AF1-4A31-BDED-34CB91503B4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CD9C3C4D-4AF1-4A31-BDED-34CB91503B4C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{996500F0-3CD5-912F-03D5-25011C2BD106}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{996500F0-3CD5-912F-03D5-25011C2BD106}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{996500F0-3CD5-912F-03D5-25011C2BD106}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{996500F0-3CD5-912F-03D5-25011C2BD106}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08D6072E-CEC7-FA4B-00E7-C0C88E8C5A38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08D6072E-CEC7-FA4B-00E7-C0C88E8C5A38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08D6072E-CEC7-FA4B-00E7-C0C88E8C5A38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08D6072E-CEC7-FA4B-00E7-C0C88E8C5A38}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F65C796-E597-2D31-BA0C-EE9A672A68EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F65C796-E597-2D31-BA0C-EE9A672A68EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F65C796-E597-2D31-BA0C-EE9A672A68EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F65C796-E597-2D31-BA0C-EE9A672A68EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{82A09AEE-FA5E-7E76-29A2-4FB1B78E3CD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{82A09AEE-FA5E-7E76-29A2-4FB1B78E3CD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{82A09AEE-FA5E-7E76-29A2-4FB1B78E3CD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{82A09AEE-FA5E-7E76-29A2-4FB1B78E3CD5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
