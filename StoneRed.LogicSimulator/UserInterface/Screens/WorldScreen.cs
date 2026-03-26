@@ -159,8 +159,8 @@ internal class WorldScreen : SrlsScreen<Grid>
         if (selectedLogicGate is not null)
         {
             richTextLayout.Text = selectedLogicGate.WorldData.Name.Truncate(10);
-            richTextLayout.Draw(srls.SpriteBatch, selectedLogicGate.WorldData.Position + (new Vector2(2, 2) * srls.Scale), Color.White, new Vector2(srls.Scale, srls.Scale), layerDepth: 0);
-            srls.SpriteBatch.DrawRectangle(selectedLogicGate.WorldData.Position, logicGateSize * srls.Scale, Color.Red, 2 * srls.Scale);
+            richTextLayout.Draw(srls.SpriteBatch, (selectedLogicGate.WorldData.Position + new Vector2(2, 2)) * srls.Scale, Color.White, new Vector2(srls.Scale, srls.Scale), layerDepth: 0);
+            srls.SpriteBatch.DrawRectangle(selectedLogicGate.WorldData.Position * srls.Scale, logicGateSize * srls.Scale, Color.Red, 2 * srls.Scale);
         }
 
         srls.SpriteBatch.End();
@@ -208,6 +208,11 @@ internal class WorldScreen : SrlsScreen<Grid>
 
         foreach (LogicGate logicGate in simulator.GetLogicGates())
         {
+            if (logicGate == selectedLogicGate)
+            {
+                continue;
+            }
+
             Rectangle rectangle = new Rectangle((logicGate.WorldData.Position * srls.Scale).ToPoint(), (logicGateSize * srls.Scale).ToPoint());
 
             if (rectangle.Contains(camera.ScreenToWorld(mouseState.Position.ToVector2())))
@@ -219,6 +224,10 @@ internal class WorldScreen : SrlsScreen<Grid>
                 else if (!srls.Desktop.IsMouseOverGUI && keyboardState.IsKeyDown(Keys.X) && connectionContext is null)
                 {
                     simulator.RemoveLogicGate(logicGate);
+                }
+                else if (!srls.Desktop.IsMouseOverGUI && keyboardState.IsKeyDown(Keys.M) && connectionContext is null)
+                {
+                    selectedLogicGate = logicGate;
                 }
                 else if (!srls.Desktop.IsMouseOverGUI && logicGate is IInteractable interactable)
                 {
@@ -236,14 +245,16 @@ internal class WorldScreen : SrlsScreen<Grid>
 
         if (selectedLogicGate is not null)
         {
-            Vector2 position = camera.ScreenToWorld(mouseState.Position.ToVector2());
-            position = new Vector2(position.X - RealMod(position.X, 100 * srls.Scale), position.Y - RealMod(position.Y, 100 * srls.Scale));
+            // Convert screen to world coordinates and then to unscaled grid coordinates
+            Vector2 position = camera.ScreenToWorld(mouseState.Position.ToVector2()) / srls.Scale;
+
+            // Snap to 100-unit grid (in unscaled coordinates)
+            position = new Vector2(position.X - RealMod(position.X, 100), position.Y - RealMod(position.Y, 100));
 
             selectedLogicGate.WorldData.Position = position;
 
             if (mouseState.WasButtonJustDown(MouseButton.Left) && !mouseOverGate && !srls.Desktop.IsMouseOverGUI)
             {
-                selectedLogicGate.WorldData.Position /= srls.Scale;
                 simulator.AddLogicGate(selectedLogicGate);
 
                 if (keyboardState.IsShiftDown())
