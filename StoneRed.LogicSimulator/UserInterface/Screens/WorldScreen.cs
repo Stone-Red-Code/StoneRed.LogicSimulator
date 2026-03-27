@@ -17,6 +17,7 @@ using StoneRed.LogicSimulator.Utilities;
 using StoneRed.LogicSimulator.WorldSaveSystem;
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using IColorable = StoneRed.LogicSimulator.Api.Interfaces.IColorable;
@@ -49,6 +50,15 @@ internal class WorldScreen : SrlsScreen<Grid>
     private ConnectionContext? connectionContext = null;
 
     private LogicGate? selectedLogicGate = null;
+    private bool selectedLogicGateIsExisting;
+    private readonly HashSet<LogicGate> selectedLogicGates = [];
+    private bool isBoxSelecting;
+    private bool isMovingSelection;
+    private Vector2 selectionStartWorld;
+    private Vector2 selectionEndWorld;
+    private readonly Dictionary<LogicGate, Vector2> moveOffsets = [];
+    private readonly List<ClipboardGateData> clipboardGates = [];
+    private readonly List<ClipboardConnectionData> clipboardConnections = [];
     public override bool ScalingEnabled => false;
     protected override string XmmpPath => "WorldScreen.xmmp";
 
@@ -138,6 +148,11 @@ internal class WorldScreen : SrlsScreen<Grid>
 
             srls.SpriteBatch.DrawRectangle(logicGate.WorldData.Position * srls.Scale, logicGateSize * srls.Scale, Color.DarkGray, 2 * srls.Scale, 0.2f);
 
+            if (selectedLogicGates.Contains(logicGate))
+            {
+                srls.SpriteBatch.DrawRectangle(logicGate.WorldData.Position * srls.Scale, logicGateSize * srls.Scale, Color.Gold, 3 * srls.Scale, 0.15f);
+            }
+
             // Draw text for components
             richTextLayout.Text = logicGate.WorldData.Name.Truncate(10);
             richTextLayout.Draw(srls.SpriteBatch, (logicGate.WorldData.Position + new Vector2(2, 2)) * srls.Scale, Color.Black, new Vector2(srls.Scale, srls.Scale), layerDepth: 0);
@@ -161,6 +176,12 @@ internal class WorldScreen : SrlsScreen<Grid>
             richTextLayout.Text = selectedLogicGate.WorldData.Name.Truncate(10);
             richTextLayout.Draw(srls.SpriteBatch, (selectedLogicGate.WorldData.Position + new Vector2(2, 2)) * srls.Scale, Color.White, new Vector2(srls.Scale, srls.Scale), layerDepth: 0);
             srls.SpriteBatch.DrawRectangle(selectedLogicGate.WorldData.Position * srls.Scale, logicGateSize * srls.Scale, Color.Red, 2 * srls.Scale);
+        }
+
+        if (isBoxSelecting)
+        {
+            Rectangle rect = CreateSelectionRectangle(selectionStartWorld, selectionEndWorld);
+            srls.SpriteBatch.DrawRectangle(rect, Color.LimeGreen, 2 * srls.Scale, 0.12f);
         }
 
         srls.SpriteBatch.End();
@@ -203,6 +224,7 @@ internal class WorldScreen : SrlsScreen<Grid>
 
         MouseStateExtended mouseState = MouseExtended.GetState();
         KeyboardStateExtended keyboardState = KeyboardExtended.GetState();
+        Vector2 mouseWorld = camera.ScreenToWorld(mouseState.Position.ToVector2());
 
         bool mouseOverGate = false;
 
@@ -221,13 +243,14 @@ internal class WorldScreen : SrlsScreen<Grid>
                 {
                     ShowConnectionContextMenu(logicGate, mouseState.Position, keyboardState.IsShiftDown());
                 }
-                else if (!srls.Desktop.IsMouseOverGUI && keyboardState.IsKeyDown(Keys.X) && connectionContext is null)
+                else if (!srls.Desktop.IsMouseOverGUI && (keyboardState.IsKeyDown(Keys.X) || keyboardState.IsKeyDown(Keys.Delete)) && connectionContext is null)
                 {
                     simulator.RemoveLogicGate(logicGate);
                 }
-                else if (!srls.Desktop.IsMouseOverGUI && keyboardState.IsKeyDown(Keys.M) && connectionContext is null)
+                else if (!srls.Desktop.IsMouseOverGUI && keyboardState.IsKeyDown(Keys.M) && selectedLogicGates.Count == 0 && connectionContext is null && selectedLogicGate is null)
                 {
                     selectedLogicGate = logicGate;
+                    selectedLogicGateIsExisting = true;
                 }
                 else if (!srls.Desktop.IsMouseOverGUI && logicGate is IInteractable interactable)
                 {
@@ -243,6 +266,98 @@ internal class WorldScreen : SrlsScreen<Grid>
             srls.Desktop.HideContextMenu();
         }
 
+        if (!srls.Desktop.IsMouseOverGUI && connectionContext is null && selectedLogicGate is null)
+        {
+            if (mouseState.WasButtonJustDown(MouseButton.Left) && !mouseOverGate && !isMovingSelection)
+            {
+                isBoxSelecting = true;
+                selectionStartWorld = mouseWorld;
+                selectionEndWorld = mouseWorld;
+                selectedLogicGates.Clear();
+            }
+            else if (isBoxSelecting && mouseState.IsButtonDown(MouseButton.Left))
+            {
+                selectionEndWorld = mouseWorld;
+            }
+            else if (isBoxSelecting && mouseState.WasButtonJustUp(MouseButton.Left))
+            {
+                isBoxSelecting = false;
+                selectionEndWorld = mouseWorld;
+                selectedLogicGates.Clear();
+                Rectangle selectionRect = CreateSelectionRectangle(selectionStartWorld, selectionEndWorld);
+                foreach (LogicGate logicGate in simulator.GetLogicGates())
+                {
+                    Rectangle gateRect = new Rectangle((logicGate.WorldData.Position * srls.Scale).ToPoint(), (logicGateSize * srls.Scale).ToPoint());
+                    if (selectionRect.Intersects(gateRect))
+                    {
+                        _ = selectedLogicGates.Add(logicGate);
+                    }
+                }
+            }
+        }
+
+        if (!srls.Desktop.IsMouseOverGUI && selectedLogicGates.Count > 0 && connectionContext is null && selectedLogicGate is null)
+        {
+            if (!isMovingSelection && keyboardState.WasKeyJustUp(Keys.M))
+            {
+                isMovingSelection = true;
+                moveOffsets.Clear();
+                Vector2 anchor = SnapToGrid(mouseWorld / srls.Scale);
+                foreach (LogicGate logicGate in selectedLogicGates)
+                {
+                    moveOffsets[logicGate] = logicGate.WorldData.Position - anchor;
+                }
+            }
+
+            if (keyboardState.WasKeyJustUp(Keys.X) || keyboardState.WasKeyJustUp(Keys.Delete))
+            {
+                foreach (LogicGate logicGate in selectedLogicGates.ToList())
+                {
+                    simulator.RemoveLogicGate(logicGate);
+                }
+                selectedLogicGates.Clear();
+                isMovingSelection = false;
+                moveOffsets.Clear();
+            }
+        }
+
+        if (!srls.Desktop.IsMouseOverGUI && connectionContext is null && selectedLogicGate is null && keyboardState.IsControlDown())
+        {
+            if (keyboardState.WasKeyJustUp(Keys.C))
+            {
+                CopySelectionToClipboard();
+            }
+            else if (keyboardState.WasKeyJustUp(Keys.V))
+            {
+                PasteClipboardAt(SnapToGrid(mouseWorld / srls.Scale));
+                isMovingSelection = true;
+                moveOffsets.Clear();
+                Vector2 anchor = SnapToGrid(mouseWorld / srls.Scale);
+                foreach (LogicGate logicGate in selectedLogicGates)
+                {
+                    moveOffsets[logicGate] = logicGate.WorldData.Position - anchor;
+                }
+            }
+        }
+
+        if (isMovingSelection)
+        {
+            Vector2 anchor = SnapToGrid(mouseWorld / srls.Scale);
+            foreach (LogicGate logicGate in selectedLogicGates)
+            {
+                if (moveOffsets.TryGetValue(logicGate, out Vector2 offset))
+                {
+                    logicGate.WorldData.Position = anchor + offset;
+                }
+            }
+
+            if (mouseState.WasButtonJustDown(MouseButton.Left))
+            {
+                isMovingSelection = false;
+                moveOffsets.Clear();
+            }
+        }
+
         if (selectedLogicGate is not null)
         {
             // Convert screen to world coordinates and then to unscaled grid coordinates
@@ -255,20 +370,28 @@ internal class WorldScreen : SrlsScreen<Grid>
 
             if (mouseState.WasButtonJustDown(MouseButton.Left) && !mouseOverGate && !srls.Desktop.IsMouseOverGUI)
             {
-                simulator.AddLogicGate(selectedLogicGate);
-
-                if (keyboardState.IsShiftDown())
+                if (!selectedLogicGateIsExisting)
                 {
-                    SelectLogicGate();
+                    simulator.AddLogicGate(selectedLogicGate);
+
+                    if (keyboardState.IsShiftDown())
+                    {
+                        SelectLogicGate();
+                    }
+                    else
+                    {
+                        UnSelectLogicGate();
+                    }
                 }
                 else
                 {
+                    simulator.LogicGatesUpdated();
                     UnSelectLogicGate();
                 }
             }
         }
 
-        if (keyboardState.WasKeyJustUp(Keys.C))
+        if (!keyboardState.IsControlDown() && keyboardState.WasKeyJustUp(Keys.C))
         {
             UnSelectLogicGate();
         }
@@ -320,12 +443,132 @@ internal class WorldScreen : SrlsScreen<Grid>
         return r < 0 ? r + m : r;
     }
 
+    private static Vector2 SnapToGrid(Vector2 position)
+    {
+        return new Vector2(
+            position.X - RealMod(position.X, 100),
+            position.Y - RealMod(position.Y, 100)
+        );
+    }
+
+    private static Rectangle CreateSelectionRectangle(Vector2 start, Vector2 end)
+    {
+        int left = (int)Math.Min(start.X, end.X);
+        int top = (int)Math.Min(start.Y, end.Y);
+        int right = (int)Math.Max(start.X, end.X);
+        int bottom = (int)Math.Max(start.Y, end.Y);
+        return new Rectangle(left, top, Math.Max(1, right - left), Math.Max(1, bottom - top));
+    }
+
+    private void CopySelectionToClipboard()
+    {
+        clipboardGates.Clear();
+        clipboardConnections.Clear();
+
+        if (selectedLogicGates.Count == 0)
+        {
+            return;
+        }
+
+        LogicGate[] gates = selectedLogicGates.ToArray();
+        Vector2 min = new Vector2(gates.Min(g => g.WorldData.Position.X), gates.Min(g => g.WorldData.Position.Y));
+
+        Dictionary<LogicGate, int> gateIndexes = [];
+        for (int i = 0; i < gates.Length; i++)
+        {
+            gateIndexes[gates[i]] = i;
+        }
+
+        for (int i = 0; i < gates.Length; i++)
+        {
+            LogicGate source = gates[i];
+            if (!LogicGatesManager.TryGetTypeLogicGateName(source.GetType(), out string? typeName))
+            {
+                continue;
+            }
+
+            clipboardGates.Add(new ClipboardGateData(
+                typeName,
+                source.WorldData.Position - min,
+                source.WorldData.Name,
+                source.WorldData.Description
+            ));
+        }
+
+        foreach (LogicGate source in gates)
+        {
+            if (!gateIndexes.TryGetValue(source, out int fromIndex))
+            {
+                continue;
+            }
+
+            foreach (LogicGateConnection connection in source.LogicGateConnections)
+            {
+                if (gateIndexes.TryGetValue(connection.LogicGate, out int toIndex))
+                {
+                    clipboardConnections.Add(new ClipboardConnectionData(
+                        fromIndex,
+                        toIndex,
+                        connection.InputIndex,
+                        connection.OutputIndex
+                    ));
+                }
+            }
+        }
+    }
+
+    private void PasteClipboardAt(Vector2 anchor)
+    {
+        if (clipboardGates.Count == 0)
+        {
+            return;
+        }
+
+#pragma warning disable IDE0028 // Simplify collection initialization
+        List<LogicGate> pastedGates = new List<LogicGate>(clipboardGates.Count);
+#pragma warning restore IDE0028 // Simplify collection initialization
+
+        for (int i = 0; i < clipboardGates.Count; i++)
+        {
+            ClipboardGateData gateData = clipboardGates[i];
+            LogicGate gate = srls.LogicGatesManager.CreateLogicGate(gateData.TypeName);
+            gate.WorldData.Name = gateData.Name;
+            gate.WorldData.Description = gateData.Description;
+            gate.WorldData.Position = anchor + gateData.RelativePosition;
+            simulator.AddLogicGate(gate);
+            pastedGates.Add(gate);
+        }
+
+        foreach (ClipboardConnectionData connection in clipboardConnections)
+        {
+            if (connection.FromIndex < 0 || connection.FromIndex >= pastedGates.Count ||
+                connection.ToIndex < 0 || connection.ToIndex >= pastedGates.Count)
+            {
+                continue;
+            }
+
+            LogicGate fromGate = pastedGates[connection.FromIndex];
+            LogicGate toGate = pastedGates[connection.ToIndex];
+            fromGate.Connect(toGate, connection.InputIndex, connection.OutputIndex);
+        }
+
+        simulator.LogicGatesUpdated();
+        selectedLogicGates.Clear();
+        foreach (LogicGate gate in pastedGates)
+        {
+            _ = selectedLogicGates.Add(gate);
+        }
+        isMovingSelection = false;
+        moveOffsets.Clear();
+    }
+
     private void SelectLogicGate()
     {
         if (nativeComponentsListBox.SelectedItem is not null)
         {
             connectionContext = null;
             selectedLogicGate = srls.LogicGatesManager.CreateLogicGate(nativeComponentsListBox.SelectedItem.Text);
+            selectedLogicGateIsExisting = false;
             selectedLogicGate.WorldData.Name = nativeComponentsListBox.SelectedItem.Text;
         }
     }
@@ -334,6 +577,11 @@ internal class WorldScreen : SrlsScreen<Grid>
     {
         connectionContext = null;
         selectedLogicGate = null;
+        selectedLogicGateIsExisting = false;
+        selectedLogicGates.Clear();
+        isBoxSelecting = false;
+        isMovingSelection = false;
+        moveOffsets.Clear();
         nativeComponentsListBox.SelectedIndex = -1;
         nativeComponentsListBox.SelectedItem = null;
     }
@@ -464,4 +712,8 @@ internal class WorldScreen : SrlsScreen<Grid>
             LogicGate = logicGate;
         }
     }
+
+    private sealed record ClipboardGateData(string TypeName, Vector2 RelativePosition, string Name, string Description);
+
+    private sealed record ClipboardConnectionData(int FromIndex, int ToIndex, int InputIndex, int OutputIndex);
 }
