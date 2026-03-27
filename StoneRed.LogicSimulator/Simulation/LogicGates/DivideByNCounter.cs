@@ -8,8 +8,8 @@ using System;
 
 namespace StoneRed.LogicSimulator.Simulation.LogicGates;
 
-[LogicGateName("DivideByNCounter")]
-[LogicGateDescription("A clock is a circuit that oscillates between a high and a low state.")]
+[LogicGateName("Divide By N Counter")]
+[LogicGateDescription("A divide by N counter is a counter that divides the input frequency by N. The output is high for one tick every N ticks.")]
 internal class DivideByNCounter : LogicGate, IInteractable
 {
     private ICircuitSimulator? circuitSimulator;
