@@ -114,11 +114,11 @@ public interface ICircuitSimulator
     bool TryRunUntilStable(int maxSteps, out int steps);
 
     /// <summary>
-    /// Subscribes to output changes on a specific gate.
-    /// The callback is invoked whenever the gate's output value changes.
+    /// Subscribes to input mask changes on a specific gate.
+    /// The callback is invoked whenever the gate's input mask changes.
     /// </summary>
     /// <param name="gateId">The gate ID to watch.</param>
-    /// <param name="callback">Action to invoke on change. Parameters are (gateId, newOutputMask).</param>
+    /// <param name="callback">Action to invoke on change. Parameters are (gateId, newInputMask).</param>
     /// <returns>An <see cref="IDisposable"/> that unsubscribes the watcher when disposed.</returns>
     /// <exception cref="ArgumentNullException">Thrown when callback is null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when gateId is invalid.</exception>

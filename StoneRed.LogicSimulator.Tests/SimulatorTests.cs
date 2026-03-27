@@ -167,20 +167,20 @@ public abstract class SimulatorTestsBase
         // Initial state
         sim.SetSource(source, false);
         _ = sim.RunUntilStable();
-        Assert.AreEqual(1, watcher1Count, "Watcher 1 should fire on initial change");
-        Assert.AreEqual(1, watcher2Count, "Watcher 2 should fire on initial change");
+        Assert.AreEqual(0, watcher1Count, "Watcher 1 should not fire when input mask does not change");
+        Assert.AreEqual(0, watcher2Count, "Watcher 2 should not fire when input mask does not change");
 
         // No change
         sim.SetSource(source, false);
         _ = sim.RunUntilStable();
-        Assert.AreEqual(1, watcher1Count, "Watcher 1 should not fire if no change");
-        Assert.AreEqual(1, watcher2Count, "Watcher 2 should not fire if no change");
+        Assert.AreEqual(0, watcher1Count, "Watcher 1 should not fire if no change");
+        Assert.AreEqual(0, watcher2Count, "Watcher 2 should not fire if no change");
 
         // Change
         sim.SetSource(source, true);
         _ = sim.RunUntilStable();
-        Assert.AreEqual(2, watcher1Count, "Watcher 1 should fire on second change");
-        Assert.AreEqual(2, watcher2Count, "Watcher 2 should fire on second change");
+        Assert.AreEqual(1, watcher1Count, "Watcher 1 should fire on input change");
+        Assert.AreEqual(1, watcher2Count, "Watcher 2 should fire on input change");
 
         // Dispose one watcher
         sub2.Dispose();
@@ -188,7 +188,7 @@ public abstract class SimulatorTestsBase
         // Change again
         sim.SetSource(source, false);
         _ = sim.RunUntilStable();
-        Assert.AreEqual(3, watcher1Count, "Watcher 1 should fire after sub2 is disposed");
-        Assert.AreEqual(2, watcher2Count, "Watcher 2 should NOT fire after being disposed");
+        Assert.AreEqual(2, watcher1Count, "Watcher 1 should fire after sub2 is disposed");
+        Assert.AreEqual(1, watcher2Count, "Watcher 2 should NOT fire after being disposed");
     }
 }

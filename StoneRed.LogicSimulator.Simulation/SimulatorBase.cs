@@ -246,18 +246,18 @@ public abstract class SimulatorBase : ICircuitSimulator
     }
 
     /// <summary>
-    /// Notifies all registered watchers of gates that changed between the previous and current output states.
+    /// Notifies all registered watchers of gates that changed between the previous and current input states.
     /// </summary>
-    /// <param name="previousOutputMasks">The output states from before the change.</param>
-    protected void NotifyAllWatchers(int[] previousOutputMasks)
+    /// <param name="previousInputMasks">The input states from before the change.</param>
+    protected void NotifyAllWatchers(int[] previousInputMasks)
     {
         for (int i = 0; i < gatesWithWatchers.Length; i++)
         {
             int gateId = gatesWithWatchers[i];
-            if (outputMasks[gateId] != previousOutputMasks[gateId])
+            if (inputMasks[gateId] != previousInputMasks[gateId])
             {
                 Action<int, int>[] callbacks = watcherCache[gateId];
-                int val = outputMasks[gateId];
+                int val = inputMasks[gateId];
                 for (int j = 0; j < callbacks.Length; j++)
                 {
                     callbacks[j](gateId, val);
@@ -267,7 +267,7 @@ public abstract class SimulatorBase : ICircuitSimulator
     }
 
     /// <summary>
-    /// Notifies watchers of a specific gate that its output has changed.
+    /// Notifies watchers of a specific gate that its input has changed.
     /// </summary>
     /// <param name="gateId">The ID of the gate that changed.</param>
     protected void NotifyGateWatchers(int gateId)
@@ -283,7 +283,7 @@ public abstract class SimulatorBase : ICircuitSimulator
             return;
         }
 
-        int val = outputMasks[gateId];
+        int val = inputMasks[gateId];
         for (int i = 0; i < callbacks.Length; i++)
         {
             callbacks[i](gateId, val);

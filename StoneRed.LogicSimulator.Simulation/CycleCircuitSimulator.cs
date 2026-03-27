@@ -17,6 +17,7 @@ public sealed class CycleCircuitSimulator : SimulatorBase
     private int[] nextInputMasks = [];
     private Action<int[], int[], int[]> computeOutputs = (_, _, _) => { };
     private int[] previousOutputMasks = [];
+    private int[] previousInputMasks = [];
 
     /// <summary>
     /// Ensures internal storage arrays are properly sized for the current gate count.
@@ -28,6 +29,7 @@ public sealed class CycleCircuitSimulator : SimulatorBase
         {
             nextInputMasks = new int[gateKinds.Count];
             previousOutputMasks = new int[gateKinds.Count];
+            previousInputMasks = new int[gateKinds.Count];
         }
     }
 
@@ -39,6 +41,7 @@ public sealed class CycleCircuitSimulator : SimulatorBase
         base.Reset();
         Array.Clear(nextInputMasks);
         Array.Clear(previousOutputMasks);
+        Array.Clear(previousInputMasks);
     }
 
     /// <summary>
@@ -55,10 +58,14 @@ public sealed class CycleCircuitSimulator : SimulatorBase
 
         (outputMasks, previousOutputMasks) = (previousOutputMasks, outputMasks);
         computeOutputs(inputMasks, outputMasks, sourceStates);
+        if (hasAnyWatchers)
+        {
+            Array.Copy(inputMasks, previousInputMasks, inputMasks.Length);
+        }
         PropagateAndSwap();
         if (hasAnyWatchers)
         {
-            NotifyAllWatchers(previousOutputMasks);
+            NotifyAllWatchers(previousInputMasks);
         }
     }
 
@@ -136,10 +143,14 @@ public sealed class CycleCircuitSimulator : SimulatorBase
             steps++;
             (outputMasks, previousOutputMasks) = (previousOutputMasks, outputMasks);
             computeOutputs(inputMasks, outputMasks, sourceStates);
+            if (hasAnyWatchers)
+            {
+                Array.Copy(inputMasks, previousInputMasks, inputMasks.Length);
+            }
             changed = PropagateAndSwapDetectChange();
             if (hasAnyWatchers)
             {
-                NotifyAllWatchers(previousOutputMasks);
+                NotifyAllWatchers(previousInputMasks);
             }
         }
         return !changed;

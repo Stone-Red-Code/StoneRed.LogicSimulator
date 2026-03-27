@@ -84,7 +84,6 @@ public sealed class EventCircuitSimulator : SimulatorBase
             if (outputMasks[gateId] != oldOutput)
             {
                 Propagate(gateId);
-                NotifyGateWatchers(gateId);
             }
         }
     }
@@ -103,6 +102,10 @@ public sealed class EventCircuitSimulator : SimulatorBase
             if (oldBit != outVal)
             {
                 inputMasks[toGate] ^= 1 << bit;
+                if (hasAnyWatchers)
+                {
+                    NotifyGateWatchers(toGate);
+                }
                 Enqueue(toGate);
             }
         }
