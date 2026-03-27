@@ -141,6 +141,8 @@ internal class LogicGateSimulator
             }
         }, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
 
+        logicGatesUpdated = true;
+
         while (IsRunning)
         {
             tps++;
