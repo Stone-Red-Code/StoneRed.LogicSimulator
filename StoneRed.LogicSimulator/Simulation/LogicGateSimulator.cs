@@ -11,10 +11,13 @@ namespace StoneRed.LogicSimulator.Simulation;
 internal class LogicGateSimulator
 {
     private readonly ConcurrentDictionary<ulong, LogicGate> logicGates = new ConcurrentDictionary<ulong, LogicGate>();
+    private readonly List<int> globalClockTargets = [];
     private DateTime dateTime;
     private bool logicGatesUpdated = false;
     private ulong logicGateId = 0;
     private ICircuitSimulator? circuitSimulator;
+    private int globalClockSourceGateId = -1;
+    private bool globalClockState;
 
     public int TargetTicksPerSecond { get; set; } = 100;
 
@@ -110,14 +113,15 @@ internal class LogicGateSimulator
     private void SimulationThread()
     {
         int tps = 0;
-        float sleepDelayIterations = 10000;
+        int sleepDelayIterations = 10000;
         int sleepDelayMs = 10;
 
         circuitSimulator = CreateSimulator();
 
         Timer timeCheckTimer = new Timer(_ =>
         {
-            ActualTicksPerSecond = tps;
+            // Compensate for any time drift by calculating actual TPS and adjusting sleep delay accordingly
+            ActualTicksPerSecond = (int)Math.Round(tps / (DateTime.Now - dateTime).TotalSeconds);
             dateTime = DateTime.Now;
             tps = 0;
 
@@ -125,7 +129,8 @@ internal class LogicGateSimulator
             {
                 float percentage = Math.Abs((TargetTicksPerSecond - (float)ActualTicksPerSecond) / Math.Abs((float)ActualTicksPerSecond) * 100);
 
-                sleepDelayIterations *= (float)ActualTicksPerSecond / TargetTicksPerSecond;
+                sleepDelayIterations = Math.Max(sleepDelayIterations, 1);
+                sleepDelayIterations *= (int)((float)ActualTicksPerSecond / TargetTicksPerSecond);
 
                 ClockCalibrating = percentage > 5;
             }
@@ -143,11 +148,25 @@ internal class LogicGateSimulator
             if (logicGatesUpdated)
             {
                 circuitSimulator = CreateSimulator();
+                globalClockTargets.Clear();
+                globalClockSourceGateId = circuitSimulator.AddGate(GateKind.Source);
+                globalClockState = false;
+                circuitSimulator.SetSource(globalClockSourceGateId, false);
 
                 // Register all gates first
                 foreach (LogicGate gate in logicGates.Values)
                 {
                     gate.Register(circuitSimulator);
+                    if (gate is LogicGates.Clock)
+                    {
+                        globalClockTargets.Add(gate.SimulatorGateId);
+                    }
+                }
+
+                // Connect the global clock source to all clock gates
+                for (int i = 0; i < globalClockTargets.Count; i++)
+                {
+                    circuitSimulator.ConnectGates(globalClockSourceGateId, globalClockTargets[i], 0);
                 }
 
                 // Then connect them based on LogicGate connections
@@ -169,11 +188,14 @@ internal class LogicGateSimulator
                 logicGatesUpdated = false;
             }
 
+            globalClockState = !globalClockState;
+            circuitSimulator.SetSource(globalClockSourceGateId, globalClockState);
+
             circuitSimulator.Step();
 
             if (HighPerformanceClock)
             {
-                Thread.SpinWait((int)sleepDelayIterations);
+                Thread.SpinWait(sleepDelayIterations);
             }
             else
             {
